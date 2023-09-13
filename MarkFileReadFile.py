@@ -690,7 +690,12 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
                                     #for problem, show all competing problems, and the current phrse and original phrase (current being the new statement with problems acting on it, or fairs already accepted on it)
                         #accept tokens should be run until either tokens are exhausted, or a command is given to break from handling.
                         
-                    
+                        #9/13/23: confirm the changes in problemHigh and fairToken, 
+                            #then push phrase, and prompt for whther to accept or reject problems case by case (in each case, acceptting or rejecting, or reject both, in either case, update the problem space (through a copy list), and adjust the remaining indexes each time)
+                            #finally, push that phrase, repeat fair and problem as many times as the user likes in the future
+                        #After that, we need to work more on the commands (simply finish what commands were already outlined).
+                        #Then, we need to make a conflict reference [fast reference for problem tokens to converted to fair tokens (as applicable)], and a way to split the string into indivdual characters, but have a dictionary of assumptions (like all character groups, or a period following a number should stay together, etc).
+                        #Only then, can we start to think about syntax graphs [we can make a seperate file for tests in creating those trees from idealized tokenized strings]
                     
                     else:
                         print("recieved no")
