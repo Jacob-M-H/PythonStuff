@@ -546,7 +546,7 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
                     pass
                 elif type==2:#2 accept fair, adjust problems
                     for token in problemHighTokens:
-                        if inspectToken.getEnd()-runningDifference<token.getStart(): #ISSUES 
+                        if inspectToken.getEnd()-runningDifference<token.getStart():  
                             print("inspectToken ", inspectToken.getEnd())
                             print("token position before [",token.getStart(),", ",token.getEnd(), "]")
                             token.setStart(token.getStart()-difference)
@@ -556,7 +556,7 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
                 elif type==3: #3 accept problem, adjust fairs
                     pass
                 insIdx+=1
-                runningDifference+=inspectToken.getEnd()-inspectToken.getStart() #DOES NOT MUTATE ORIGINAL acceptTokens LIST, AS WE NEED TO USE THE LIST AT LEAST TWICE
+                runningDifference+=difference  
             pass
 
         def createNewLine(type:int (0|1), skipList:list[str]):
