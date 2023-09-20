@@ -1,0 +1,35 @@
+#PROBLEM STATEMENT
+
+Assume: X is an Integer. X is non-positive. 
+Prove: Can X be negative?
+
+
+#LABELS
+    Integer
+    Real
+    Collection
+    Set 
+    Group
+    Ring 
+    Variable #Catch all
+
+#CLASSIFICATIONS
+An integer can be negative, positive, or 0. 
+    #An integer can be negative, positive, or 0. Must be one of them however.
+If X is integer, then X is either positive, negative, or 0.
+If X is non-negative, then X is either positive, or 0.
+If X is non-positive, then X is either negative, or 0.
+If X is 0, then X is non-positive and non-negative. 
+
+
+#OPERATOINS [general function operations]
+    #Opeartion, object names matter. Similar with properties... hm :/ 
+
+
+
+#PROPERTIES [general transformation operations]
+    #Operation standin %
+    #Object standin CAPITAL LETTER
+    #A is the primary Object, 
+    #Properties might depend on both the primary object and the operation... :/
+

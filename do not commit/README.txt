@@ -1,0 +1,3 @@
+Files in this folder may be subject to liscensing and are purely meant to serve in a testing role. 
+Different from the Math notes from various texts - which are true regardless of the author and are to be transformed and understood by the program(s).
+Files in this folder are meant to be tests but might contain directly or partially protected information. Similar to how exact wording in the original math documents are not to be published to github.

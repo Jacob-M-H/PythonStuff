@@ -127,6 +127,52 @@ def printWordCount(i:int):
 
 
 
+#Note a definite symbol is a symbol that must exist, regardless of it's value
+anyNumWordSymbol="///" #This is not a definite symbol, 0 or more
+anyWordSymbol="_" #This is a definite symbol, 1 value must be there
+class Phrase:
+    def __init__(self, phraseLine:str):
+        self.skipSymbol=anyNumWordSymbol
+        self.anyWordSymbol=anyWordSymbol
+        self.phraseLine=phraseLine
+        self.phraseArr=phraseLine.split(" ") #Verify that the phrase is 'valid', so no ... next to ..., 
+        self.length=self.findLength()
+        self.trueLength=len(self.phraseArr)
+
+    #Helper for init
+    def findLength(self):
+        L=0
+        for word in self.phraseArr:
+            if word!=self.skipSymbol:
+                L+=1
+        return L
+    
+    #Main functionality 
+    def comparePhrase(self, compLine:list, L:int): #compare this phrase to a line. Note that this line is considered to NOT be a phrase. Thus placeholders are interpreted differently.
+            #that is, ..., or whatever the 'ANY NUM WORD' symbol ends up being, is only in the PhraseLine, whereas ... in the compLine would be an ellipse, a regualr word.
+        if (L>=self.trueLength): #At least as many as there are definites
+            skip=False
+            place=0; compPlace=0
+            #look until we find the phrase, or not. If the phrase is found, we should report it is/contains the phrase.
+            while(place<self.length):
+                if self.phraseArr[place]==self.anyWordSymbol:
+                    place+=1; compPlace+=1; skip=False
+                elif self.phraseArr[place]==self.skipSymbol:
+                    place+=1; skip=True
+                elif self.phraseArr[place]==compPlace[place]:
+                    place+=1; compPlace+=1; skip=False
+                elif skip==True: #skip Symbol in place, 
+                    compPlace+=1
+                else:
+                    return False
+            return True #Phrase is in the compLine. 
+        else: #Not enough definite symbols
+            return False
+
+
+
+
+
 Phrases=[] #_ means any string can be found in that position
 def comparePhraseToKnownPhrase(wordPhrase:str):
     #Note if ..._Word, then ... means 'any length before' and ... after is 'any length after',
@@ -181,6 +227,56 @@ def wordCountExpanded(arr, phraseLength=1):
             else:
                 print("wordCountExpanded is confused")
                 break
+
+
+
+#A different way to compare must be done with the skip symbol in play... :/ 
+    #Take line, go through all possible length of statements for a pharse (default 1, assert >=1)
+        #Then with that line, compare it to all phrases known <-fail fast and compare fast if possible
+    #If multiple phrases are found, report each in an array <-may inflate phrases found in center of a phrase... Hm :/. NOTE THIS REQUIRES THOUGHT
+def compareStatementToKnownPhrases(words:list, idx:int, phraseLength:int, numWords:int): #Hard default in func? 
+    Phrases:list(Phrase)
+    temp=[]
+    for phraseObj in Phrases:
+        if phraseObj.comparePhrase(words, numWords):
+            temp.append(phraseObj)
+    return temp #any and all phrases that matched
+
+#Now integrate knownPhrases
+def wordCountExpandedAnySymbol(arr, phraseLength=1):
+    for line in arr:
+        line=cleanLine(line)
+        words=line.split(" ")
+        numWords=len(words)
+        for idx in range(numWords):
+                #CHANGE HERE TMW, also introduce a 'or' set/'chr_' any symbol leading with chr, and ending with 1 symbol, or 'chr..._' start with chr, ends iwth at least 1 symbol
+                #These symbols are now encapsulated in the Phrase class, which should take a super that has those special symbols defined for ease of replacement.
+                #Note a problem emerged mathematically, phrases trend to over count towards the middle of a phrase. It is unclear how we should account for this.
+                    #AFter phrases figured out, we want to record the idx's where prhases happen, so that we get a 'pyramid' of likelyhood locations.
+            try:
+                wordPhrase=" ".join(words[idx:idx+phraseLength])
+            except:
+                break #Get next line basically,  
+            wordPhrase=comparePhraseToKnownPhrase(wordPhrase)
+            
+            if type(wordPhrase) == list:
+                for phrase in wordPhrase: #Count up to length to increase the relevancy, as those phrases are still valid, however do NOT record the original wordphrase, as seeing each valid phrase should start to fill each other in.
+                    if phrase in WordCount.keys():
+                        WordCount[phrase]+=1
+                    else:
+                        WordCount.update({phrase : 1})
+
+            elif type(wordPhrase)==str:
+                if wordPhrase in WordCount.keys():
+                    WordCount[wordPhrase]+=1
+                else:
+                    WordCount.update({wordPhrase : 1})
+            else:
+                print("wordCountExpanded is confused")
+                break
+ 
+
+
 
 
 def main():

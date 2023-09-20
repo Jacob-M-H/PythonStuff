@@ -1,0 +1,161 @@
+Glossary: Systems of Lienar Equations, Euclidean Space, Matrices, Subspaces, Determinants, Eigenvalues and Eigenvectors, Vector spaces, orthogonality, linear transformations, inner product spaces,
+Some problems in the book state Calculus is required.
+Axioms of Real, Integer +,/,*, and - are assumed, along with (). 
+Note order matters when doing matrix multiplication [two matrices multiplied together, or a matrice * a column vector]. This is not specifically/directly stated.
+
+
+Chapter 1 Systems of Linear Equations
+Section 1.1 Lines and Linear Equations
+Linear equation has the general form: a_1x_1+a_2x_2+...+a_nx_n = b (4), where a_1, a_2, ..., a_n and b are constants, and x_1, x_2, ..., x_n are variables or unknowns.
+A solution (s_1, s_2, ..., s_n) to (4) is an ordered set of n numbers (sometimes called an n-tuple) such that if we set x_1=s_1, x_2=s_2,..., x_n=s_n, then (4) is satisfied.
+The solution set for a lienar equation such as (4) consists of the set of all solutions to the equation (4).
+In 3 variables, the graph of a solution set is a plane. If n>=4, then the solution set of all n-tuples that satisfy (4) is called a hyperplane.
+The set of two or more linearequations is called a system of lienar equations. 
+There is a convention to writing a set of lienar equations, which keep a constant-variable pair in a column accross all linear equations for each particular variable (i.e. x_i, for any 1<=i<=n).
+Def 1.1 -> A System of Linear equations is a collection of equations of hte form: (7) \n a_{1,1}x_1+a_{1,2}x_2+a_{1,3}x_3+...+a_{1,n}x_n=b_1 \n a_{m,1}x_1+a_{m,2}x_2+a_{m,3}x_3+...+a_{n,m}x_n=b_m
+A solution to a system of linear equations (7) is an n-tuple (s_1, s_2,...,s_n) that satisfies every equation in the system.
+A system of linear equations such as (7) has m equations with n unknowns. It is possible for m to be greater than, equal to, or less than n, we will see all 3 cases.
+A Linear system is shorthand for a system of linear equations.
+If a Linear system has at least one solution, then we say that it is consistent, otherwise it is inconsistent.
+The remainder of this section we will concentrate on 'special types of systems', and will tkae on general systems in hte next section.
+Back Substitution is a method of solving.
+In a system of lienar equations, a variable that appears as the first term in at least one equation is called a leading variable.
+Consider triangular systems. A Linear system is said to be of traingualr form (and is said to be a triangular system) if it has the form \n a_{1,1}x_1+a_{1,2}x_2+...+a_{1,n}x_n=b_1 \n a_{2,2}x_2+a_{2,3}x_3+...+a{2,n}x_n=b_2 \n a_{3,3}x_3+...+a_{3,n}x_n=b_3 \n ... \n a_{n,n}x_n=b_n, where a_{1,1}, a_{2,2},...,a_{n,n} are all nonzero. 
+It is trivial to verify that triangular systems of the following properties: a) Every variable is the leading variable of exactly one equation. b) There are the same number of equations as variables. c) There is exactly one solution.
+A Linear system is in Echelon form (and is called an echelon system) if the system is organized in a descending 'stair step' pattern from left to right, so that the indices of the leading variable are strictly increasing top to bottom. EQuations without vairables of the form 0=c are at the bottom, with those where c!=0 are above those where c=0. This form is similar to triangular systems, but without requiring each variable to be a leading variable for at least, and at most 1 equation.
+Def 1.2 -> Properties of Echelon Systems: a) Every variable is the leading variable of at most one equation. b) there are no solutions, exactly one solution, or infintely many solutions.
+For a system in Echelon form, any variable that is not a leading variable is called a free variable. 
+If an echelon system includes an equation 0=c, where c is a nonzero constant, then the system has no solutions, otherwise there are two possibilities: 1) If the system has no free variables, then tehre is exactly one solution. 2) If the system as at least one free variable, then the general solution has free parameters and there are infinitely many solutions.
+Theorem 1.3 -> A system of linear equations has no soutions, exactly one solution, or infintely many solutions.
+Section 1.2 Linear Systems and Matrices
+Primary goal of this section is to develop a systematic procedure for transforming any lienar system into a system that is in echelon form. The key feature of our transformation procedure is that it produces a new linear system that is in echelon form (hence solvable using back substitution) and has exactly the same set of solutions as the original solution.
+Def -> Two linear systems are said to be equivalent if they have the same set of solutions.
+Subsection Elementary Operations
+We can transform a linear system using a sequence of elementary operations. Each operation produces a new system that is equivalent to the old one, so the solution set is unchanged. Three types. 1) Interchange the position of two equations. 2) Multiply an equation by a nonzero constant. 3) Add a multiple of one equation to another. [Proving each operation produces an equivalent liner system exercise 56]
+The symbol ~ in this book indicates the transformation from one lienar system to an equivalent linear system.
+Going forward, we identify coefficents using the notion for a generic system of equations introduces in section 1.1 (7).
+Subsection Augmented Matrix
+When manipulating systems of equations, the coefficents change, but the variables do not. We can simplify the notation by trasnferring the coeefficents to a matrix, which for the moment we can think of as a regular table of numbers. Whe na matrix contains all the coefficents of a linear system, including the cosntant terms on the right sode of each equation, it is called the augmented matrix. The right hand side, the 'b' coefficent of the system of linear equations is usually seperated with a line in the augmented matrix.
+The Three elemntry operations that we performed on equations can be translated into equivalent elementary row operations for matrices. 1) Interchange two rows. 2) Multiplya row by a nonzero constant. 3) Replace a row wit hthe sum of that row and the scalar multiple of another row. 
+Borrowing the terminology for systems of equations, we say that two matrices are equivalent if one can be obtained from the other through a sequence of elementary row operations. Hence equivalent augmented matrices correspon to equivalent linear systems.
+A zero row is a row consisting entirely of zeros, and a nonzero column are similarly defined. 
+A Compact notation for exchanging rows in an augmented matrix is to specify 'R' for row, and it's subscript 'i' for the row number. So R_1 <-> R_2 is equivalent to interchanging Row 1 and Row 2. 
+Similarly a compact notation for Adding a multiple of one row to another is i_1*R_1+R_2 -> R_2, where i_1 is some number. Here we replace Row 2 with Row 2 plus i_1 Row 1's.
+As with linear systems, we use the symbol ~ to indicate that two matrices are equivalent.
+Subsection Gaussian Elimination
+The procedure using the three operations is known as Gaussian Elimination. The resulting matrix is said to be echelon form (or row echelon form) and will have the properties given in definition 1.4 belwo. In the definition, the leading term of a row is the leftmost nonzero term in that row, and a row of all zeros has no leading term.
+Def 1.4 -> A Matrix is in echelon form if a) Every leading term is in a column to the left of the leading term of the row below it. b) Any zero rows are at the bottom of the matrix.
+Note that the first condition in definition 1.4 implies that a matrix in echelon form will havezeros filling out hte column below each of the leading terms. 
+For a matrix in echelon form, the pivot positions are those that contain a leading term. The pivot columns are the columns that contain a pivot position, and a pivot is a nonzero number in a pivot position.
+See Example 4 for Gaussian Eliminatin example. Identify a pivot point, Eliminate terms, repeat until echelon form is achieved, or unable to advance, or a contradictioin is formed [i.e. x_{n}=b (finite solutions), x_{j}+x_{i}=b (for some 1<j,i<=n, i!=j, and cannot be reduced further, infinite solutions) , c=0 (constant non zero is equal to zero, no solutions)].
+Subsection Gauss-Jordan Elimination
+WARNING -> When using Gaussian and Gauss Jordan elimination, do not yield to the temptation to alter the order of row operations. Changing the order can result in a circular sequence of operations that lead to endless misery (?)
+Def 1.5 -> A matrix is in reduced echelon form (or reduced row echelon form) if a) It is in echelon form. b) All pivot positions contain a 1. c) The only nonzero term in a pivot column is in the pivot position.
+Transforming a matrix to reduced echelon form can be viewed as having two parts: The forward phase is Gaussian elimination, transforming the matrix to echelon form, and the backwards phase, which competes the transformation to reduced echelon form. 
+The combination of forward and backward phases is referred to as Gauss-Jordan elimination. Although a given matrix can be equivalent to many different echelon form matrices, the same is not true of reduced echelon form matrices.
+Theorem 1.6 -> A given matrix is equivalent to a unique matrix that is in reduced echelon form. 
+Subsection Homogeneous Linear Systems
+A Linear equation is homogenous if it has the form a_1x_1 + a_2x_2 + ... + a_nx_n = 0.
+Homogeneous linear systems are an important class of systems made up of homogeneous linear equations. It is of the form (7) with b=0.
+All homogenous systems are consistent, because there is always one easy solution, namely a zero vector x_1=0, x_2=0,...,x_n=0. this is called hte trivial solution. If there are additional solutions they are called nontrivial solutions. We determine if there are nontrivial solutions in the usual way using Gauss-Jordan elimination.
+Theorem 1.3 [Proof provided]-> A system of linear equations has no solutions, exactly one solution, or infinitely many solutions.
+flops is a unit of arithemtic operations.
+COMPUTATIONAL NOTES -> For a system of n equations with n unknowns, Gaussian elimination requires approximately (2/3)*n^3 flops, and Gauss-Jordan requires about n^3 flops. Back substitution is slightly more complicated for Gaussian elimination than for Gauss-Jordan, but overall Gaussian elimination is more efficient and is the method that is usually implemented in computer software. When elimination methods are implemented on computers, to contorl round-off error they typically include an extra step called 'partial pivoting' which involves selecting the entry having ht largest absolute value to serve as the pivot. when performing row oepration sby hand, partial pivoting tends to introduce fractions and leads to messy calculations, so we avoided the topic, however it is discussed in section 1.4.
+Section 1.3 Applications of Linear Systems.
+Section 1.4 Numerical Solutions
+COMPUTATIONAL NOTES -> This whole section is worth a read for implementation or understanding.
+
+Chapter 3 Euclidean Space
+Section 2.1 Vectors
+Def 2.1 -> A vector is an ordered list of real numebrs u_1, u_2, ..., u_n expressed as u = (Vertically) [u_1, u_2, ..., u_n] (where u_n is the bottom most), or as u=(u_1, u_2, ..., u_n). The set of all vectors with n entries is denoted by R^n,
+Note on book convention. Vectors are in bold. 
+Each of the entires u_1, u_2, ..., u_n is called a component of the vector. A vector expressed in the veritcal form is also called a column vector, and a vector expressed in horizontal form is also called a row vector. It is customary to express vectors in column form. 
+Def 2.2 -> Let u and v be vectors in R^n given by u=[u_1,..., u_n] and v=[v_1,..., v_n]. Suppose that c is a real number, caled a scalar in this context. Then we have the following defintions: Equality u=v if and only if u_1 = v_1, u_2=v_2,... u_n=v_n. Addition u+v =  [u_1, u_2, ..., u_n] +  [v_1, v_2, ..., v_n] =  [u_1+v_1, u_2+v_2, ..., u_n+v_n]. Scalar multiplication cu= c * [u_1, u_2, ..., u_n] =  [c*u_1, c*u_2, ..., c*u_n]. The set of all vectors in R^n, taken together with these definitions of addition and scalar multiplication, is called Euclidean Space.
+Note that two vectors can be equal only if they have the same number of components. Similarly there is no way to add two vectors that have a different number of components.
+Theorem 2.3 -> Algebraic properties of vectors. Let a and b be scalars, and u,v, and w be vectors in R^n. Then a) u+v = v+u. b) a(u+v)=au+av. c) (a+b)u=au+bu. d) (u+v)+w=u+(v+w). e) a(bu)=(ab)u. f) u+(-u)=0. g) u+0=0+u=u. h) 1u=u. Additionally The zero vector is given by 0=[0,...,0] and -u=(-1)u. Proof is provided.
+Subsection Linear Combinations and Systems of Equations.
+Def 2.4 -> If u_1, u_2,..., u_m are vectors and c_1, c_2,..., c_m are scalars, then c_1u_1+c_2u_2+...+c_mu_m is a linear combination of u_1, u_2, ..., u_m. Note that it is possible for scalars to be negative or equal to zero. 
+Linear combinations provide an alternative way to express a system of linear equations. By using linear combinations to express a system of linear equations, we call it a vector equation. 
+Subsection Solutions as Linear Combinations.
+In fact, the general solution to any system of lienar equations can be expressed as a lienar combination of vectors, called the vector form of the general solution. 
+Subsection Geometry of Vectors
+This section seems to provide an intuitive geometric way to understand how vectors combine.
+Section 2.2 Span
+Def 2.5 -> Let {u_1, u_2, ..., u_m} be a set of vectors in R^n. The span of this set is denoted span{u_1, u_2, ..., u_m} and is defiend as the set of all linear combinations x_1u_1+x_2u_2+...+x_mu_m where x_1, x_2, ..., x_m can be any real numbers.
+If Span{u_1, ..., u_m} = R^n, then we say that the set {u_1, u_2, ..., u_m} spans R^n.
+Theorem 2.6 -> let u_1, u_2, ..., u_m and v be vectors in R^n. Then v is an element of span{u_1, u_2, ..., u_m} if and only if the linear system with augmented matrix [u_1 u_2 ... u_m | v] has a solution.
+Theorem 2.7 -> Let u_1, u_2, ..., u_m and u be vectors in R^n. If u is in span {u_1, u_2, ..., u_m}, then span{u, u_1, u_2, ..., u_m}= span{u_1, u_2, ..., u_m}. 
+Theorem 2.8 -> Suppose that u_1, ..., u_m are in R^n, and let A=[u_1 u_2 ... u_m] ~ B, where B is in echelon form. Then span{u_1, ..., u_m} = R^n exactly when B has a pivot position in eveyr row. A Proof is provided for every theorem it seems.
+Theorem 2.9 -> Let {u_1, u_2, ..., u_m} be the set of vectors in R^n. If m<n, then this set does not span R^n. If m>=n, then the set might span R^n or it might not. In this case, we cannot say more without additional information about the vectors.
+Subsection The Equation Ax=b.
+Def 2.10 -> Let a_1, a_2, ..., a_m be vectors in R^n. If A=[a_1 a_2 ... a_m] and x = [x_1 x_2 ... x_m], where A is a matrix of column vectors, and x is a column vector, then Ax=x_1a_1+x_2a_2+...+x_ma_m. This is only defiend with the number of columns of A equals the number of components of x.
+Theorem 2.11 -> Let a_1, a_2, ..., a_m and b be vectors in R^n. Then the following statements are equivalent. That is, if one is true, then so are the others, and if one is false, then so are the others. a) b is in span{a_1, a_2, ..., a_m}. b) The vector equation x_1a_1+x_2a_2+...+x_ma_m = b has at least one solution. c_ The lienar system corresponding to [a_1 a_2 ... a_m | b] has at least one solution. d) The equation Ax=b, with A and x given as in Definition 2.10, has at least one solution.
+Section 2.3 Linear Independence
+Def 2.12 -> Let {u_1, u_2, ..., u_m} be a set of vectors in R^n. If the only solution to the vector equation x_1u_1+x_2u_2+...+x_mu_m = 0 is the trivial solution given by x_1=x_2=...=x_m =0, the nthe set {u_1, u_2, ..., u_m} is lienarly independent. If there are nontrivial solutions, then the set is linearly dependent. 
+Note, to determine if a set of vectors is linearly dependent or independent, we almost always use the method illustrated in example 1: Set the lienar combination equal to 0 and find the solutions. 
+Theorem 2.13 -> Suppose that {0, u_1, u_2, ..., u_m} is a set of vectors in R^n (Note that 0 is the 0 vector in this case). Then the set is linearly dependent. 
+Theorem 2.14 -> Suppose that {u_1, u_2, ..., u_m} is a set of vectors in R^n. If n<m, then the set is linearly dependent. 
+Subsection Span and Linear Independence
+Theorem 2.15 -> Let {u_1, u_2, ..., u_m} be a set of vectors in R^n. Then this set is lienarly dependent if and only if one of the vectors in the set is in the span of the other vectors. 
+Theorem 2.16 -> Let u_1, ..., u_m be in R^n, and suppose A=[u_1 u_2 ... u_m] ~ B, where B is in echelon form. Then a) span{u_1, ..., u_m} = R^n exactly when B has a pivot position in every row. b) {u_1, ..., u_m} is lienarly independent exactly when B has a pivot position in every column.
+Subsection Homogeneous Systems.
+Theorem 2.17 -> Let A= [a_1 a_2 ... a_m], where a_i is a column vector, and x=(x_1, x_2, ..., x_m), and x is a column vector. The set {a_1, a_2, ..., a_m} is linearly independent if and only if the homogeneous linear system Ax=0 has only the trivial solution.
+If b != 0, then the system Ax=b is nonhomogeneous, and the associated homogeneous system is Ax=0. There is a close connection between the set of solutions to a nonhomogeneous system Ax=b and the associated homogeneous system Ax=0, illustrated in the following example [example 4].
+Theorem 2.18 -> Suppose A=[a_1 a_2 ... a_m], where a_i is a column vector, and let x=(x_1, x_2, ..., x_m) also a column vector, and y=(y_1, y_2,..., y_m) also a column vector. Then a) A(x+y)=Ax+Ay. b) A(x-y)=Ax-Ay.
+Suppose x_p is a specific solution [i.e. also a vector] to a problem of hte form Ax=b, where x and b are coloumn vectors. We call x_p a particular solution to the system, and it can be thought of as a fixed solution to the system.
+Theorem 2.19 -> Let x_p be a particular solution to Ax=b, where x_p, x, and b are column vectors. Then all solutions to x_g to Ax=b have the form x_g=x_p+x_h, where x_h is a solution to the associated homogeneous system Ax=0, where 0 is the zero vector. 
+Note [nontext], it seems that outside of this text, a 'free variable' is any variable in which the corresponding row in the agumented matrix that is not a pivot point. It seems that by setting all non pivot point variables to 0, we get our x_p. The 'special solution' is the other part, the x_h, corresponds to a free column, those that don't have a pivot, the first being from left to right. The augmented matrix must be set to 0 to solve for them. I would se MrClean1796 for more. Set free variable first to 1, and the others to 0, and then solve. This is the special solution. then finding the second special solution. Let all other free variables to be 0, and solve similarly. This goes on until all special solutions have been found.  Note [nontext], the complete solution, also by MrClean1796, x_g=x_p+x_h, so Ax=b, where b is not necessarily 0, augment A with b, and then row reduce as usual. Set all free variables to 0, solve. Now you have x_p. Then find x_h, Solve for 0 (A not augmented wiith b). It seems the non free variables are set to 0, but this is not clear in his video - requires writting down to figure it out. So we get possibly a set of special solutions. So now we have x_c = particaul+free variable_1*special_1+freevariable_2+special_2 ... etc. Note that after seeing it in 'this' form, Theorem 2.19 becomes much more understndable.
+Note, Theorem 2.11 linekd span with solutions to lieanr systems. Theorem 2.20 similarly will link linear independence with solutions to lienar systems. 
+Theorem 2.20 -> Let a_1, a_2, ..., a_m and b be vectors in R^n. Then the following statements are equivalent. That is, if one is true,then so are the others, and if one is false, then so are the others. a) The set {a_1, a_2, ..., a_m} is linearly independent. b) The vector equation x_1a_1 + x_2a_2 + ... + x_ma_m = b has at most one solution for every b. c) The lienar system corresponding to [a_1 a_2 ... a_m | b] has at most one solution for every b. d) The equation Ax=b, with A=[a_1 a_2 ... a_m], has at most one solution for every b.
+Theorem 2.21 The Unifying Theorem - Version 1 -> Let S={a_1, ..., a_m} be a set of n vectors in R^n, and let A=[a_1 ... a_n]. Then the following are equivalent: a) S spans R^n. b) S is linearly independent. c) Ax=b has a unique solution for all b in R^n.
+Chapter 3 Matrices
+Section 3.1 Linear Transformations.
+Note, we define a class of functions callled Linear Transformations, let T : R^m -> R^n denote a function T with domain R^m (the input vectors) and the codomain R^n (the output vectors), for every u in R^m, the vector T(u) is called the image of u under T. The set of all images of vectors u in R^m under T is caleld the range of T, or alternatively referred to as teh image of T. Denoted range(T) or image(T). The range of T is a subset of the codomain of T.
+Def 3.1 -> A function T: R^m -> R^n is a lienar transfromation if for all vectors u and v in R^m and all scalars r we have a) T(u+v)=T(u)+T(v). b) T(ru)=rT(u)
+Note, conditions a and b of Def 3.1 can be combined into a single condition, T(ru+sv)=rT(u)+sT(v), forall vectors u and v and all scalars r and s. 
+Note, Suppose A is a matrix with n rows and m columns, the nwe say A is an n x m matrix and that A has dimensions n x m. If n=m, then A is a square matrix.
+Theorem 3.2 -> Let A by an n x m matrix, and define T(x)=Ax. Then T: R^m -> R^n is a linear transformation. (By define, it means verify the condtiions in Def 3.1 both hold.) 
+Note, It turns out that every lienar transformation T:R^m->R^n is of the form T(x)=Ax for some n x m matrix A. (Proven by Theorem 3.8)
+Theorem 3.3 -> Let A = [ a_1 a_2 ... a_m] be an n x m matrix, and let T:R^m ->R^n with T(x)=Ax be a linear transformation. Then a) The vector w is in the range T if and only if Ax=w is a consistent lienar system. b) range (T) = span {a_1, ..., a_m}.
+Subsection One to One and Onto Linear Transformations.
+Def 3.4 -> Let T:R^m->R^n be a linear transformation. Then a) T is one-to-one if for every vector w in R^n there exists at msot one vector u in R^m such that T(u)=w. b)T is onto if for every vector w in R^n there exists at least one vector u in R^m such that T(u)=w.
+Def 3.4 Alternate 'a' -> A Linear transformatoin T is one-to-one if T(u)=t(v) implies that u=v.
+Theorem 3.5 -> Let T be a lieanr transformation. Then T is one-to-one if and only if the only solution to T(x) = 0 is the trivial solution x=0.
+Theorem 3.6 -> This is a consequence of span and linear independence form Section 2.2 and 2.3. Let A be an n x m matrix and define T: R^m -> R^n by T(x) = Ax. Then a) T is one-to-one if and only if hte columns of A are linearly independent. b) If A~B and B is in echelon form, then T is one-to-one if and only if B has a pivot position in every column. c) If n<m, then T is not one-to-one.
+Theorem 3.7 -> Let A be an n x m matrix and define T: R^m -> R^n by T(x)=Ax. Then a) T is onto if and only if the columns of A span the codomain R^n. b) If A~B and B is in echelon form, the nT is onto if and only if B has a pivot position in eveyr row. c) If n>m, then T is not onto.
+Theorem 3.8 -> Let T: R^m->R^n. Then T is a lienar transformation if and only if T(x)=Ax for some n x m matrix in A.
+Theorem 3.9 The Unifying theorem - Version 2 -> Let S={a_1, ..., a_m} be a set of n vectors in R^n, and let A=[a_1 ... a_n], and let T: R^n -> R^n be given by T(x)=Ax. Then the following are equivalent: a) S spans R^n. b) S is linearly independent. c) Ax=b has a unique solution for all b in R^n. d) T is onto. e) T is one-to-one.
+Section 3.2 Matrix Algbera.
+Def 3.10 Let C be a scalar and let A be an nxm matrix, and B be an nxm matrix. Then addition and scalar multiplication of hte matrices are defined: a) A+B = the {1,1} position of A+B=(a_{i,j}+b{i,j}...), and so on for every position {i,j} where 1<=i<=n, 1<=j<=m. b) cA=(ca_{i,j},...) for every position {i,j} where 1<=i<=n, 1<=j<=m.
+Theorem 3.11 -> Let s and t be scalars, A, B, and C be matrices of dimensions n x m, and 0_{n,m} be the nxm matrix with all zero entries. Then a) A + B = B+A. b) s(A+B)=sA+sB. c) (s+t)A=sA+tA. d) (A+B)+C=A+(B+C). e) (st)A=s(tA). f) A+0_{n,m}=A.
+Subsection Matrix Multiplication.
+Def 3.12 -> Let A be an nx k matrix and B=[b_1 b_2 ... b_m] a kxm matrix. We define the product AB=[Ab_1 Ab_2 ... Ab_m] which is an nxm matrix. (This is simply treating Ax=b but for each 'x' it is a column vector of B, and the resulting b is that column for the new 'AB') It is important to Note that AB and BA may not necessarily both be defined, and it is important to note also that matrix multiplication is not commutative. Also note that if AB and BA are defined, it is not necessarily the case that AB=BA.
+Subsection the Identity Matrix.
+The matrix 0_{n,m} is called the additive identity for a matrix A with dimensions n x m. 
+The Matrix I is the additive identity of a n x m Matrix A, where each column vector i_j of I , is a zero vector except in the 'j'th position of that column vector, which is equal to 1. [nonText note: Or hte multiplicative identity of the group/ring in the associatid A location]
+Note A=I_nA and A=AI_m for all nxm matrices A. For brevity I_n for n=1,2, ... are multiplicative identities, and are refered to as Identity matrices. 
+Subsection Properties of Matrix Algebra
+Theorem 3.13 -> Let s be a scalar and let A, B , and C be matrices. Then each of the following holds in the cases where the indicated operations are defined: a) A(BC) = (AB)C. b)A(B+C)=AB+AC. c)(A+B)C=AC+BC. d) s(AB)=(sA)B=A(sB). e)AI=A. f)IA=A. Here I denotes an identity matrix of appropraite dimension.
+Theorem 3.14 -> Let A, B, and C be nonzero matrices. a) It is possible that AB != BA. b) AB=0 does not imply that A=0  or B=0. c) AC=BC does not imply that A=B or C=0. Here 0 represents the 0 matrix of appropraite dimension. [NonText Note, this and commutativity from previous theorem/definitions are defining the difference between the operations of Matrices and the real numbers.]
+Subsection Transpose of a Matrix.
+Def -> The Transpose of a Matrix A is denoted A^T and results from interchanging the rows of columns of A. For example A = [a_1 ... a_m],  then a column vector t_1 of A^T is defiend as t_1=[a_{1,1}, a_{2,1}, ..., a_{m, 1}], or in other words, the t_i is equal to the i'th row of A.
+Theorem 3.15 -> Let A and B be n x m matrices, C an m x k matrix, and s be a scalar, and ^T represent a transpose. Then a)(A+B)^T = A^T+B^T. b)(sA)^T=sA^T. c) (AC)^T = C^TA^T. Note that (c) says that the transpose of a product is the product of transposes but with the order reversed. 
+Def -> A special class of square matrices are those such that A=A^T. Matrices wit hthis property are said to be symmetrix.
+Subsection Composition of Linear Transformers.
+Theorem 3.16 -> Let S(x) = B(x) and T(y) = A(y) be lienar transformations, where A is nxk and B is kxm. Then W(w)=T(S(x)) is a linear transformation with W(w)=ABx. Note that W is defiend as W: R^m->R^n, where W(x) is a composition of T with S, where T and S are lienar transformations. [nontext note, isn't this just a isomorphism or something like that?]
+Def -> A Diagonal Matrix is one of two types of matrices that retain their form when raised to powers. (That is, it is composed with itself up to some exponenet). A Diagonal matrix is an nxm matrix where the only values which are non ero are those in the {i,i} spot, for all 1<=i<=n. (Square? It seems implied).
+Def -> The second class of matrices whose form is uncahgned when raised to a power are Traingualr matrices. An nxn matrix A is upper triangular if it has the form: All values a_{i,j} are zero if j<i. It is a lower Triangualr if all values a_{i,j} are zero if j>i.  (Nontext note: i is row, j is column for clarity)
+Def -> A Matrix is Traingular if it is either upper or lower traingular. (Diagonal matrices are both).
+Theorem 3.17 -> If A is the diagonal Matrix, then for each integer k>=1, A=[ a_1^k a_2^k ... a_m^k], where a_i^k = a_{i,i}^k, and every other position in a_i is 0.
+Theorem 3.18 -> Let A be an nxn upper(lower) triangular matrix and k>=1 an integer. Then A^k is also an upper (lower) Triangular matrix. (Nontext note, the () after a term signifies that it is to be swapped in another version of the statement, for example all 'upper' in this definition can be swapped with 'lower' and it would also be true.)
+Subsection Elementary Matrices.
+Def 3.19 -> If we perform a single elementary row operation on an identity matrix I_n, then the result is called an elementary matrix. [Nontext: There seems to be some signficant power behidn this operation, but I can't see how it's useful yet, maybe in big data?]
+Subsection Partitioned Matrices.
+Def -> Note, Some applications require working with really, really, really bit matrices (Think tens of millions of entries) in such situations, we can divide the matrices into smaller submatrices that are more managable. Let's say A is a 7 x 5 matrix. Then we can define A_{1,1} to be the first 3 rows and 3 columns, A_{1,2} to be the first 3 rows and columns 4,5. Etc.  These submatrices are called Blocks. The advantage is that we can do arithmetic on a few blocks at a time to make better use of computer emmeory, and split the owrk easily for different processors and performed in parallel. 
+Section 3.3 Inverses.
+
+
+
+
+
+
