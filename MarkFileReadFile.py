@@ -645,6 +645,7 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
             if f1!="":
                 line.append(f1)
             line.append(f2)
+            #One word idx, and a list of culprits to adjust
 
             while (len(culprits)>0):
                 adjIndex=0
@@ -668,13 +669,13 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
                     line.append(f1)
                 line.append(f2)
         
-            if f3!="":
+            if f3!="":# in the event len(culprits)==0)
                 #print("final cpy word add (assuming it's either f3 or the last bit of last cpyWord): ", f3)
                 line.append(f3) 
-                adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(cpyWord), 1]) #Only one additional left
+                adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(f3)-1, 1]) #Only one additional left
             return line, adj
-
-    def acceptToken(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
+        
+    def acceptToken2(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
         inspectIdx=0
         if len(inspectTokens)==0:
             return wordList, []
