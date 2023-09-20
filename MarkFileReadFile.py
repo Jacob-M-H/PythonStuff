@@ -114,15 +114,21 @@ class SymbolGraphs:
  
 
 class FoundPotentialToken(): #The idea is that the sets_ will let us change the start/end when accpeting fair tokens across pairs and the unqiue list 
+    symbolIndex:int #Which word in the sentence to look at for this token.
     tokenSymbol:str
     layer:int
     start:int
     end:int
-    def __init__(self, tS:str, l:int, s:int, e:int):
+    def __init__(self, tS:str, l:int, s:int, e:int, symbolIndex:int):
+        self.symbolIndex=symbolIndex
         self.tokenSymbol=tS
         self.layer=l
         self.start=s
         self.end=e
+    def getSymbolIndex(self):
+        return self.symbolIndex
+    def setSymbolIndex(self, idx:int):
+        self.symbolIndex=idx
     def checkAssumptions(self):
         if self.layer>-1 and self.start>-1: #end is not clear, but start is.
             if self.start<=self.end:
@@ -144,9 +150,9 @@ class FoundPotentialToken(): #The idea is that the sets_ will let us change the 
     def getEnd(self):
         return self.end
     def __str__(self): #str(FoundPotentialToken) <-guess
-        return "["+self.tokenSymbol+", "+ str(self.layer)+", "+str(self.start)+", "+str(self.end)+"]"
+        return "["+self.tokenSymbol+", "+ str(self.layer)+", "+str(self.start)+", "+str(self.end)+", "+str(self.symbolIndex)+"]"
     def __repr__(self): #print 
-        return "["+self.tokenSymbol+", "+ str(self.layer)+", "+str(self.start)+", "+str(self.end)+"]"
+        return "["+self.tokenSymbol+", "+ str(self.layer)+", "+str(self.start)+", "+str(self.end)+", "+str(self.symbolIndex)+"]"
    
 class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-of-strings-that-have-a-format-variable might have some use
     totalLayers:int
@@ -387,16 +393,42 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
             locationPlace=[self.symbolDict[problemPair[0].getTokenSymbol()],self.symbolDict[problemPair[1].getTokenSymbol()]]
             self.problemMatrix[locationPlace[0]][locationPlace[1]] 
  
+    #Used in conjunction with checkConflictsHighTokens
+    def checkConflicts(self, highTokens:list[FoundPotentialToken]):
+        highTokens.sort(key=lambda x:x.getSymbolIndex()) #We'll split the list by its index (since only if it's same word will it conflict) NOTE it is not necessarily the case that every word has a hightoken
+        if len(highTokens)<=1:
+            return [] #No possible problem pairs
+        
+        problemPairs=[]
+        #ASSERT highTokesn must have at least two elements
+        tempRun=[0,0]
+        while tempRun[1]<len(highTokens):
+            if highTokens[tempRun[0]].getSymbolIndex()==highTokens[tempRun[1]].getSymbolIndex():
+                tempRun[1]+=1
+            else:
+                print("Found run of ", tempRun[0], ", ",tempRun[1]-1)
+                highTokens[tempRun[0]:tempRun[1]].sort(key=lambda x:(x.getEnd()-x.getStart()), reverse=True) #Widest range to start, mutates original list. 
+                problemPairs.extend(checkConflictsHighTokens(highTokens[tempRun[0]:tempRun[1]])) 
+                tempRun[0]=tempRun[1]
+                tempRun[1]=tempRun[0]
+        
+        print("Found run of ", tempRun[0], ", ",tempRun[1]-1)
+        highTokens[tempRun[0]:tempRun[1]-1].sort(key=lambda x:(x.getEnd()-x.getStart()), reverse=True) #maybe this is redundant
+        problemPairs.extend(checkConflictsHighTokens(highTokens[tempRun[0]:tempRun[1]]))
+        return problemPairs
+
     def checkConflictsHighTokens(self, highTokens:list[FoundPotentialToken]): #Could be improved. Runs only once per layer, after potential hightoken(s) are found.
         #Check just if there exists a conflict, report all idx's where the conflict occurs.
         #print("CCHT: ",highTokens) 
-        highTokens.sort(key=lambda x:(x.getEnd()-x.getStart()), reverse=True) #Widest range to start, mutates original list. 
+        highTokens.sort(key=lambda x:(x.getStart()), reverse=True) #In the event the tokens were not inserted correctly <- not necessary in practice, but perhaps might be in the future
+        highTokens.sort(key=lambda x:(x.getEnd()-x.getStart()), reverse=True) #Widest range to start, mutates original list.  
         #print("CCHT sorted: ",highTokens)
         seenSpans=[]
         problemIdxPairs=[]
         problemFlag=False
-        for token in highTokens:
-            for span in seenSpans:
+        for token in highTokens: 
+            for spanIdx in range(len(seenSpans)):
+                span=seenSpans[spanIdx]
                 #t.end=>s.start #t.start <= s.end #Both - russian doll (or neither?, the opposite, span is inside this span. Shouldn't happen since lambda sorts by span gap, )
                 if token.getEnd()>=span.getStart() and token.getStart()<=span.getEnd(): #either one will be true 
                     problemFlag=True
@@ -407,11 +439,33 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
                 if problemFlag:
                     problemIdxPairs.append([token, span])
                     problemFlag=False
-            seenSpans.append(token)
-
+            seenSpans.append(token)  
         #Token in highTokens = [specialToken, Layer, st, end], conflict if they overlap between two or more tokens. [how to check multiple, unordered pairs?] [Order by widest span?]
+    
         return problemIdxPairs #If not empty, the pairs are the problems.     
-         
+    
+    def sortBy(self, tokens:list[FoundPotentialToken], lambdaKeys:list):
+        toDo=lambdaKeys[0]
+        tokens.sort(key=toDo[0], reverse=toDo[1])
+        #if there are more instructions, find runs and run those instructions on that subset
+        if len(lambdaKeys)-1!=0:
+            tempRun=[0,0]
+            while tempRun[1]<len(tokens):
+                if toDo[0](tokens[tempRun[0]])==toDo[0](tokens[tempRun[1]]):
+                    tempRun[1]+=1
+                else:
+                    print("Found run of ", tempRun[0], ", ",tempRun[1]-1)
+                    tokens[tempRun[0]:tempRun[1]]=self.sortBy(tokens[tempRun[0]:tempRun[1]], lambdaKeys[1:]) #Widest range to start, mutates original list. 
+                        #NOTE, I think the slicing when passing into sortBy makes it not sort in place :/. What can you do? I suppose. 
+                    tempRun[0]=tempRun[1]
+                    tempRun[1]=tempRun[0]
+            
+            print("Found run of ", tempRun[0], ", ",tempRun[1]-1)
+            tokens[tempRun[0]:tempRun[1]]=self.sortBy(tokens[tempRun[0]:tempRun[1]], lambdaKeys[1:]) #Widest range to start, mutates original list.  
+
+        return tokens
+
+
     def deminishStatement2(self, phrase:list[str], 
                         additionalTokenSeperation, #function|None
                         findHighOrderTokens, #function|None
@@ -436,17 +490,22 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
         #accept tokens
             #adjust tokens, new string
         #record remaining tokens, new phrase
-
-        wordList=additionalTokenSeperation(phrase) #Clean/seperate tokens
+        if additionalTokenSeperation!=None:
+            wordList=additionalTokenSeperation(phrase) #Clean/seperate tokens
+        else:
+            wordList=phrase
         #Layer 0, assuming this is what is desired. 
 
+
         #----- Find special Syntax and Conflicts in that (unintentional grammer conplexity) ----- 
-        highTokens=findSpecialSyntax(wordList,"...", self.totalLayers) #Find potential recombinations of tokens for higher order tokens  
-        
+        if findHighOrderTokens!=None:
+            highTokens=fastFindSpecialSymbol1(wordList, ["..."], self.totalLayers) #Find potential recombinations of tokens for higher order tokens  
+        else:
+            highTokens=[]    
         #find conflicts in the potential - fair tokens, problem tokens 
         problemHighTokensPairs=[]
         if len(highTokens)>1:
-            problemHighTokensPairs=self.checkConflictsHighTokens(highTokens) #Insert=True means it's save to add all,  
+            problemHighTokensPairs=self.checkConflicts(highTokens) #Insert=True means it's save to add all,  
         
         print("ProblemTokensPairs: ", problemHighTokensPairs) #ERR, 14-16, and 5-7 should be in fair tokens :/?
         #CTRLF NOTE SUBROUTINE Substep Standard report unique problems, preserve problem pairs for data retreival. 
@@ -559,6 +618,134 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
                 runningDifference+=difference  
             pass
 
+        
+        #Used in accept token 2 
+        def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
+            adj=[]
+            line=[]
+            running=0
+            adjIndex=0
+            if culprits==[]:
+                return [], []
+            else:
+                print("Len of culrpits : ", culprits)
+                adjIndex=0
+                crime=culprits.pop(0) 
+                f1=cpyWord[:crime.getStart()]
+                f2=cpyWord[crime.getStart():crime.getEnd()+1]
+                f3=cpyWord[crime.getEnd()+1:]
+                running=crime.getEnd()+1
+                adjIndex=1 #f2 !=""
+                if f1!="":
+                    adjIndex+=1 
+                print("Found ", f1,", ",f2,", ", f3,", running: ", running)
+                adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
+                line.append(f1)
+                line.append(f2)
+
+                while (len(culprits)>0):
+                    adjIndex=0
+                    cpyWord=f3
+                    print("deal with remaining word(s): ", f3)
+                    if (cpyWord==""):
+                        break
+                    
+                    crime=culprits.pop(0)
+                    f1=cpyWord[:crime.getStart()-running]
+                    f2=cpyWord[crime.getStart()-running:crime.getEnd()+1-running]
+                    f3=cpyWord[crime.getEnd()+1-running:]
+                    running=crime.getEnd()+1
+                    adjIndex=1 #f2 !="" 
+                    #f2 !=""
+                    if f1!="":
+                        adjIndex+=1
+                    print("Found ", f1,", ",f2,", ", f3,", running: ", running)
+                    adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
+                    line.append(f1)
+                    line.append(f2)
+            
+                if f3!="":
+                    print("final cpy word add (assuming it's either f3 or the last bit of last cpyWord): ", f3)
+                    line.append(f3) 
+                    adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(cpyWord), 1]) #Only one additional left
+                return line, adj
+        #Returns broken pieces of an accepted token and string section, and the adjustment required for future passes [those adjustments take place after the next pushPhrase, but should occur before accepting problem tokens if this is fair, or fair if this is problems]
+        def acceptToken2(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
+            inspectToken=inspectTokens.pop(0)
+            newLine=[]
+            culprits=[]
+            adjustSurvivors=[]#insert error if there is a Token with a wordIndex beyond our wordList (early sanity check)
+            for wordIdx in range(len(wordList)): 
+                cpyWord=wordList[wordIdx]
+                if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==0:
+                    newLine.append(cpyWord)
+                else: 
+                    while wordIdx==inspectToken.getSymbolIndex():
+                        if len(inspectTokens)==0:
+                            culprits.append(inspectToken)
+                            break
+                        else:
+                            culprits.append(inspectToken)
+                            inspectToken=inspectTokens.pop(0)
+                        
+                        
+                    x,y=breakUp(cpyWord, culprits) #returns a list to join with the new line, and a list to join with the adjust 
+                    culprits=[]
+                    newLine.extend(x)
+                    adjustSurvivors.extend(y)
+
+            return newLine, adjustSurvivors
+        
+                
+
+
+        def createNewLine2(type:int (0|1), skipList:list[str]):
+            print("new line 2 start")
+            newLine=[]
+            nonlocal fairTokens
+            nonlocal problemHighTokenPairs
+            nonlocal problemHighTokens
+            self.sortBy(fairTokens, [[lambda x:x.getSymbolIndex(), False], [lambda x:x.getStart(), False]])
+            self.sortBy(problemHighTokens,[[lambda x:x.getSymbolIndex(), False], [lambda x:x.getStart(), False]])
+            self.sortBy(problemHighTokenPairs, [[lambda x:x.sort(key=lambda y:y.getStart), False], [lambda x:x[0].getSymbolIndex, False]])
+            #sorted by symbolIdx, then start
+            print(fairTokens)
+            print(problemHighTokens)
+            #sort each element by it's start, and sort each entry of the main list by it's symbol Index 
+            print(problemHighTokenPairs)
+            print("Check the above assumptions")
+
+
+
+            if type==0: #accepting fairTokens
+                inspectTokens=[i for i in fairTokens if i not in skipList]
+                print(inspectTokens)
+                print("check the order is preserved")
+                tokenizedString, adjustments = acceptToken2(self.currentPhrase, inspectTokens)
+                #INSERT ADJUST SURVIVORS
+                #INSERT PUSH PHRASE
+            elif type==1: #accept problem tokens
+                inspectTokens=[i for i in problemHighTokens if i not in skipList]
+                inspectPairs=None #INSERT, shorten the list prematurely? Less we have to go looking for perhaps. Make sure it's sorted
+                print(problemHighTokenPairs) #CHECK THE ORDER AND SYMBOL INDEX ARE SENSIBLE
+                print(inspectTokens)
+                print("check the order is preserved")
+                tokenizedString, adjustments = acceptToken2(self.currentPhrase, inspectTokens)
+                #INSERT ADJUST SURVIVORS
+                #Same as above
+                #If unclear prompt user between the options [that do not conflict with a 'skipepd' symbol] Showing those optential options results(? maybe unnecessary likely) <-it is clear we want to track in matrix the results
+                #SANITY CHECK REMAINING PROBLEMS
+                #INSERT PUSH PHRASE
+                pass
+            #MAKE THE MATRICES A UPPER AND LOWER TRIANGULAR BY REPLACING THE CENTER WITH [0,0], in such a way we can track conflicts between tokens, and their resolution.
+                #Maybe we should push a list of the conflicts when resolved (accepted). The more often a condition holds (like a before b, always results in a) we can suggest the logic
+                #Or something?
+                #N gram combine similar terms of a sentences? Then Otherise Or, ?
+
+                        
+
+            pass
+
         def createNewLine(type:int (0|1), skipList:list[str]):
             nonlocal problemHighTokenPairs #remove conflicts when accepting or handling one over the other.
             nonlocal problemHighTokens #fast adjust indexes
@@ -647,11 +834,8 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
             return tokens
 
         while (response==None):
-            response=input()
-            
-            
-            response=[response.split(" ")[0],response[len(response.split(" ")[0])+1:].strip()] # seperate the first input from the rest of the string 
-            
+            response=input() 
+            response=[response.split(" ")[0],response[len(response.split(" ")[0])+1:].strip()] # seperate the first input from the rest of the string  
             print(response)
 
             if (response[0]=="help"): #need to test if trailing enter is tracked
@@ -718,10 +902,40 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
 
 
 
+#----- Find special Syntax and Conflicts in that (unintentional grammer conplexity) ----- 
+#highTokens=findSpecialSyntax(wordList,"...", self.totalLayers) #Find potential recombinations of tokens for higher order tokens  
+def fastFindSpecialSymbol1(wordList:list[str], specialSymbols:list[str], layer:int): #This function looks like it works best for 'highly recursive' string stuctures like ellipses, but otherwise too messy I think
+    #Idea one: 
+    foundPotentialTokens=[]
+    sTokenList=[]
+    for symbol in specialSymbols:
+        sTokenList.append([symbol, [0]*len(symbol), 0])
+    for wordIdx in range(len(wordList)):
+        if wordIdx!=0: #Reset sTokenInfo per word
+            for sTokenInfo in sTokenList:
+                for idx in range(len(sTokenInfo[0])):
+                    sTokenInfo[1][idx]=0
+                sTokenInfo[2]=0
+        word =wordList[wordIdx]
+        for chrIdx in range(len(word)):
+            for sTokenInfo in sTokenList:
+                symbolLength=len(sTokenInfo[0])  
+                for i in range(sTokenInfo[2]+1): 
+                    if word[chrIdx]==sTokenInfo[0][sTokenInfo[1][i]]:
+                        sTokenInfo[1][i]+=1
+                        if sTokenInfo[2]<symbolLength-1: #Note, this may be a problem, say in the case .....I.... we might end up all once again at the same, perhaps we can minus 1 when we fail? and shift right all the others? 
+                            sTokenInfo[2]+=1 
+                        if sTokenInfo[1][i]==symbolLength: #Found fill string
+                            sTokenInfo[1][i]=0
+                            foundPotentialTokens.append(FoundPotentialToken(sTokenInfo[0], 0, chrIdx-symbolLength+1, chrIdx, wordIdx)) #FoundPotentialToken basically NOTE FUTURE, layer should be corrected for now lots of layer location default to 0
+                    else:
+                        sTokenInfo[1][i]=0
+                        sTokenInfo[2]=0
+    #I essentially temporarily double the specialtoken list. it's fine for small lists but on large langauges might become irksome.         
+    return foundPotentialTokens
 
 
-
-
+    pass
 
 #These three are for deminish1. 
 #assumption: Punctuation might be tokens of worth. Math statements don't have spaces, but are allowed them.
@@ -801,12 +1015,6 @@ def checkConflictsHighTokens(highTokens): #Could be improved. Runs only once per
     #Token in highTokens = [specialToken, Layer, st, end], conflict if they overlap between two or more tokens. [how to check multiple, unordered pairs?] [Order by widest span?]
     return problemIdxPairs #If not empty, the pairs are the problems.     
     
-
- 
-
-
-
-
 def TestPhrase(phrase:PhraseRecord):
     if phrase.totalLayers==0:
         phrase.cleanWordList() #should only have to run once... I think
@@ -828,72 +1036,11 @@ def TestPhrase(phrase:PhraseRecord):
         #Logic+Special [logic are expected to contirbute to the structure of the sentence/intepretation, special would be demarking some special behavior - special are also those to be checked when recombining]
             #So Unique(Logic+Special)  
 
-
-def deminishStatement(phrase:str):
-    wordList=phrase.split(" ") 
-    wordList=cleanWordList(wordList) #Seperate all punctaution
-    print(wordList)
-    #----- Find special Syntax and Conflicts in that (unintentional grammer conplexity) -----
-    Layer =0
-    highTokens=findSpecialSyntax(wordList,"...", Layer) #'recombine' possibilities for higher order tokens.
-    #[[sT, Layer, start, end]], thus we can merge a lot of high tokens to start if desired, and prioritize different or similar special Tokens... Layer lets us know how 'processed' it is.
-    print("High tokens found:", highTokens)
-    
-    newList=[] 
-    problemHighTokensPairs=[]
-    if len(highTokens)>1:
-        problemHighTokensPairs=checkConflictsHighTokens(highTokens) #Insert=True means it's save to add all, 
-    
-    #ProblemHighTokensPairs can be handled later by user algorithm
-    print("Problem High token Pairs: ", problemHighTokensPairs)
-
-    #Substep Standard report unique problems, preserve problem pairs for data retreival. 
-    problemHighTokens=set()
-    for pair in problemHighTokensPairs: 
-        for problem in pair: 
-            problemHighTokens.add(problem) 
-    problemHighTokens=list(problemHighTokens)
-
-    print("Problem high tokens unique list: ", problemHighTokens)
-    #This should adjust the problem highTokens maybe, or be moved to a new function for applying.
-    fairTokens=[i for i in highTokens if i not in problemHighTokens]  #Fair tokens are those that can be applied without conflict
-     
-    print("fairTokens: ",fairTokens)
-    if len(fairTokens)>1:
-        fairTokens.sort(key=lambda x:x.getStart())   #Should be able to apply so sort by earliest featured. Perhaps apply to a copy string? Again must move the problem token ranges appropraitely.
  
-    fTidx=0
-    newList=[]
-    wordIdx=0
-    while wordIdx<len(wordList):
-        if fTidx<len(fairTokens):
-            if wordIdx==fairTokens[fTidx].getStart(): #If the idx is equal to the start of a fair token, handle it
-                while(wordIdx<fairTokens[fTidx].getEnd()): #final symbol will be iterated by end of the loop
-                    wordIdx+=1
-                newList.append(fairTokens[fTidx].getTokenSymbol())
-                fTidx+=1
-            else:
-                newList.append(wordList[wordIdx])
-        else:
-            newList.append(wordList[wordIdx])    
-        wordIdx+=1
-    wordList=newList
-
-    #Go through problems' and adjust their positions. [assuming fair tokens accepted]
-    # Problem/Fair tokens should be given own class, would help organize data easier
-    
-
-    print("New Word List with Fair HighTokens ", wordList)        #Missing the ... and kept the . . ., so that needs to be solved.
-
-    #then this function needs to be broken up a bit. So that there is an opportunity for a user to handle the problems, or ignore and let them accumulate.
-        #If allow accumulate, we need to somehow reduce the problem locations to where they would be after adding in the changes.
-            #This suggests the wordList should become a class that 'listens' to it's own changes and keepts track of those token lists.
-
-    #So the current problem path string->token find/create/substitute -> token ownership for statements -> graph ownership statements into entry and exit nodes and the 'rigor' of such statements.
-    
 
 
 def main():
+    #region
     #only Read file -Math
     #replace everything that is not a logicSymbol with "\\expr" (or remove)
         #The read file can be stolen from MarkFile mostly
@@ -909,8 +1056,6 @@ def main():
         #Also, try to report the least amount of strings, so combos that work well together (no overlap).
         #These might be booled flags.
     #string -> deminish string (into tokens/words) -> test graph symbols (each requires a copy of the deminish, and an array equal to the symbols) (copies required per possible split) ->collect those deminished symbol graph strings -> compare them and report good combines, or confusions between symbol graphs.
-
-
 
     #Special tokens should check a passed expression class that will handle that kind of special expression...
         #How should this be done? Needs access to the graph, the statement, and the actual special token(s) specified by user.
@@ -928,6 +1073,8 @@ def main():
         #And then keep track of each symbolGraph instance, split path, and type of symbolgraph root, 
         # collect all findings of each, try to merge nonconflictary findings, based on having different roots and non conflicts
         # Report back how many conflicts are in each word per statements, and which statements are most likely to conflict (These suggest markov or a hierarchy is to be produced)
+    #endregion
+    
     testStatement1= "If x is an Integer, then either x is positive, x is negative, or x is zero."
     "[varName:X, groups:Integer, Number, Labels:Positive,negative, or zero], falseLabels=[]"
     "X is positive"
@@ -942,28 +1089,17 @@ def main():
     testStatement7="1 2  3   4    ."
  
 
-    #Step 1, deminish the phrases.
-    deminTS1 = deminishStatement(testStatement1)
-    deminTS1 = deminishStatement(testStatement5)
-    deminTS1 = deminishStatement(testStatement6)
-    #deminTS1 = deminishStatement(testStatement7)
+    #Step 1, deminish the phrases.  
 
 
-    TS1=PhraseRecord(testStatement1)
-    try:
-        TS1.forceTestValueMatrices(4,1,2,666)
-    except ValueError as e:
-        print(e)
-
-    TS1.forceTestValueMatrices(0,1,2,666)
-
+    TS1=PhraseRecord(testStatement1)  
     print(prettyPrintMatrix(TS1.getProblemMatrix())) 
 
     print("Test the promptUser for phrase")
     hypetheticalString="Jacob... Hilst... Matthew..... King... Chaos.... Anti..."
     print(hypetheticalString.split(" "))
     TS2 = PhraseRecord(hypetheticalString)
-    TS2.deminishStatement2(TS2.currentPhrase, cleanWordList, findSpecialSyntax)
+    TS2.deminishStatement2(TS2.currentPhrase, None, fastFindSpecialSymbol1)
 
     #TS2.promptUser([FoundPotentialToken("...", 0, 0, 2),FoundPotentialToken("Jacob", 0, 3, 7)], [[FoundPotentialToken("Hil",0, 8, 11), FoundPotentialToken("Hilst", 0, 8, 13)]], hypetheticalString, [FoundPotentialToken("Hil",0, 8, 11), FoundPotentialToken("Hilst", 0, 8, 13)])
  
