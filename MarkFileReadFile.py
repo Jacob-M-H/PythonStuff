@@ -620,94 +620,99 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
 
         
         #Used in accept token 2 
-        def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
-            adj=[]
-            line=[]
-            running=0
-            adjIndex=0
-            if culprits==[]:
-                return [], []
-            else:
-                print("Len of culrpits : ", culprits)
-                adjIndex=0
-                crime=culprits.pop(0) 
-                f1=cpyWord[:crime.getStart()]
-                f2=cpyWord[crime.getStart():crime.getEnd()+1]
-                f3=cpyWord[crime.getEnd()+1:]
-                running=crime.getEnd()+1
-                adjIndex=1 #f2 !=""
-                if f1!="":
-                    adjIndex+=1 
-                print("Found ", f1,", ",f2,", ", f3,", running: ", running)
-                adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
-                line.append(f1)
-                line.append(f2)
-
-                while (len(culprits)>0):
-                    adjIndex=0
-                    cpyWord=f3
-                    print("deal with remaining word(s): ", f3)
-                    if (cpyWord==""):
-                        break
-                    
-                    crime=culprits.pop(0)
-                    f1=cpyWord[:crime.getStart()-running]
-                    f2=cpyWord[crime.getStart()-running:crime.getEnd()+1-running]
-                    f3=cpyWord[crime.getEnd()+1-running:]
-                    running=crime.getEnd()+1
-                    adjIndex=1 #f2 !="" 
-                    #f2 !=""
-                    if f1!="":
-                        adjIndex+=1
-                    print("Found ", f1,", ",f2,", ", f3,", running: ", running)
-                    adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
-                    line.append(f1)
-                    line.append(f2)
             
-                if f3!="":
-                    print("final cpy word add (assuming it's either f3 or the last bit of last cpyWord): ", f3)
-                    line.append(f3) 
-                    adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(cpyWord), 1]) #Only one additional left
-                return line, adj
-        #Returns broken pieces of an accepted token and string section, and the adjustment required for future passes [those adjustments take place after the next pushPhrase, but should occur before accepting problem tokens if this is fair, or fair if this is problems]
-        def acceptToken2(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
-            inspectIdx=0
-            if len(inspectTokens)==0:
-                return wordList, []
-            print(wordList, inspectTokens)
-            inspectToken=inspectTokens[inspectIdx]
-            newLine=[]
-            culprits=[]
-            adjustSurvivors=[]#insert error if there is a Token with a wordIndex beyond our wordList (early sanity check)
-            for wordIdx in range(len(wordList)): 
-                print("1")
-                cpyWord=wordList[wordIdx]
-                if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==inspectIdx:
-                    print("2")
-                    newLine.append(cpyWord)
-                else: 
-                    print("3")
-                    while wordIdx==inspectToken.getSymbolIndex():
-                        print("3.5")
-                        if len(inspectTokens)==inspectIdx: 
-                            break
-                        else:
-                            print("5")
-                            culprits.append(inspectToken)
-                            inspectIdx+=1
-                            if inspectIdx<=len(inspectTokens)-1:
-                                print("6")
-                                inspectToken=inspectTokens[inspectIdx]
-                        
-                        
-                    x,y=breakUp(cpyWord, culprits) #returns a list to join with the new line, and a list to join with the adjust 
-                    culprits=[]
-                    newLine.extend(x)
-                    adjustSurvivors.extend(y)
-                    print("7")
+    
+    def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
+        adj=[]
+        line=[]
+        running=0
+        adjIndex=0
+        if culprits==[]:
+            return [], []
+        else:
+            #print("Len of culrpits : ", culprits)
+            adjIndex=0
+            crime=culprits.pop(0) 
+            f1=cpyWord[:crime.getStart()]
+            f2=cpyWord[crime.getStart():crime.getEnd()+1]
+            f3=cpyWord[crime.getEnd()+1:]
+            running=crime.getEnd()+1
+            adjIndex=1 #f2 !=""
+            if f1!="":
+                adjIndex+=1 
+            #print("Found ", f1,", ",f2,", ", f3,", running: ", running)
+            adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
+            if f1!="":
+                line.append(f1)
+            line.append(f2)
 
-            print("hm ", newLine)
-            return newLine, adjustSurvivors
+            while (len(culprits)>0):
+                adjIndex=0
+                cpyWord=f3
+                #print("deal with remaining word(s): ", f3)
+                if (cpyWord==""):
+                    break
+                
+                crime=culprits.pop(0)
+                f1=cpyWord[:crime.getStart()-running]
+                f2=cpyWord[crime.getStart()-running:crime.getEnd()+1-running]
+                f3=cpyWord[crime.getEnd()+1-running:]
+                running=crime.getEnd()+1
+                adjIndex=1 #f2 !="" 
+                #f2 !=""
+                if f1!="":
+                    adjIndex+=1
+                #print("Found ", f1,", ",f2,", ", f3,", running: ", running)
+                adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
+                if f1!="":
+                    line.append(f1)
+                line.append(f2)
+        
+            if f3!="":
+                #print("final cpy word add (assuming it's either f3 or the last bit of last cpyWord): ", f3)
+                line.append(f3) 
+                adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(cpyWord), 1]) #Only one additional left
+            return line, adj
+
+    def acceptToken(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
+        inspectIdx=0
+        if len(inspectTokens)==0:
+            return wordList, []
+        print(wordList, inspectTokens)
+        inspectToken=inspectTokens[inspectIdx]
+        newLine=[]
+        culprits=[]
+        adjustSurvivors=[]#insert error if there is a Token with a wordIndex beyond our wordList (early sanity check)
+        for wordIdx in range(len(wordList)): 
+            print("1")
+            cpyWord=wordList[wordIdx]
+            if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==inspectIdx: #Might be an unncessary econd condition here
+                print("2")
+                newLine.append(cpyWord)
+            else: 
+                print("3")
+                while wordIdx==inspectToken.getSymbolIndex():
+                    print("3.5")
+                    if len(inspectTokens)==inspectIdx: 
+                        break
+                    else:
+                        print("5")
+                        culprits.append(inspectToken)
+                        inspectIdx+=1
+                        if inspectIdx<=len(inspectTokens)-1:
+                            print("6")
+                            inspectToken=inspectTokens[inspectIdx]
+                    
+                    
+                x,y=breakUp(cpyWord, culprits) #returns a list to join with the new line, and a list to join with the adjust 
+                culprits=[]
+                newLine.extend(x)
+                adjustSurvivors.extend(y)
+                print("7")
+    
+        return newLine, adjustSurvivors
+ 
+
  
         
                 
