@@ -671,30 +671,44 @@ class PhraseRecord():#https://stackoverflow.com/questions/70507587/storing-list-
                 return line, adj
         #Returns broken pieces of an accepted token and string section, and the adjustment required for future passes [those adjustments take place after the next pushPhrase, but should occur before accepting problem tokens if this is fair, or fair if this is problems]
         def acceptToken2(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
-            inspectToken=inspectTokens.pop(0)
+            inspectIdx=0
+            if len(inspectTokens)==0:
+                return wordList, []
+            print(wordList, inspectTokens)
+            inspectToken=inspectTokens[inspectIdx]
             newLine=[]
             culprits=[]
             adjustSurvivors=[]#insert error if there is a Token with a wordIndex beyond our wordList (early sanity check)
             for wordIdx in range(len(wordList)): 
+                print("1")
                 cpyWord=wordList[wordIdx]
-                if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==0:
+                if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==inspectIdx:
+                    print("2")
                     newLine.append(cpyWord)
                 else: 
+                    print("3")
                     while wordIdx==inspectToken.getSymbolIndex():
-                        if len(inspectTokens)==0:
-                            culprits.append(inspectToken)
+                        print("3.5")
+                        if len(inspectTokens)==inspectIdx: 
                             break
                         else:
+                            print("5")
                             culprits.append(inspectToken)
-                            inspectToken=inspectTokens.pop(0)
+                            inspectIdx+=1
+                            if inspectIdx<=len(inspectTokens)-1:
+                                print("6")
+                                inspectToken=inspectTokens[inspectIdx]
                         
                         
                     x,y=breakUp(cpyWord, culprits) #returns a list to join with the new line, and a list to join with the adjust 
                     culprits=[]
                     newLine.extend(x)
                     adjustSurvivors.extend(y)
+                    print("7")
 
+            print("hm ", newLine)
             return newLine, adjustSurvivors
+ 
         
                 
 
