@@ -219,8 +219,10 @@ def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
             adjIndex+=1 
         #print("Found ", f1,", ",f2,", ", f3,", running: ", running)
         adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
-        line.append(f1)
+        if f1!="":
+            line.append(f1)
         line.append(f2)
+        #One word idx, and a list of culprits to adjust
 
         while (len(culprits)>0):
             adjIndex=0
@@ -240,53 +242,49 @@ def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
                 adjIndex+=1
             #print("Found ", f1,", ",f2,", ", f3,", running: ", running)
             adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
-            line.append(f1)
+            if f1!="":
+                line.append(f1)
             line.append(f2)
     
-        if f3!="":
+        if f3!="":# in the event len(culprits)==0)
             #print("final cpy word add (assuming it's either f3 or the last bit of last cpyWord): ", f3)
             line.append(f3) 
-            adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(cpyWord), 1]) #Only one additional left
+            if len(f3)==1: #A forced solution, might need something similar of the token for f2, or f1 is of length 1 ... NOTE FUTURE
+                adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(f3), 1]) #Only one additional left
+            else:
+                adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(f3)-1, 1]) #Only one additional left
         return line, adj
 
 
 def acceptToken(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
     inspectIdx=0
     if len(inspectTokens)==0:
-        return wordList, []
-    print(wordList, inspectTokens)
+        return wordList, [] 
     inspectToken=inspectTokens[inspectIdx]
     newLine=[]
     culprits=[]
     adjustSurvivors=[]#insert error if there is a Token with a wordIndex beyond our wordList (early sanity check)
-    for wordIdx in range(len(wordList)): 
-        print("1")
+    for wordIdx in range(len(wordList)):  
         cpyWord=wordList[wordIdx]
-        if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==inspectIdx:
-            print("2")
+        if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==inspectIdx: #Might be an unncessary econd condition here 
+            #print("Needs testing!") #NOTE TEST ME, jacob...,,... x2, and only take both high tokens fro the first. triggers.
             newLine.append(cpyWord)
-        else: 
-            print("3")
-            while wordIdx==inspectToken.getSymbolIndex():
-                print("3.5")
+        else:  
+            while wordIdx==inspectToken.getSymbolIndex(): 
                 if len(inspectTokens)==inspectIdx: 
                     break
-                else:
-                    print("5")
+                else: 
                     culprits.append(inspectToken)
                     inspectIdx+=1
-                    if inspectIdx<=len(inspectTokens)-1:
-                        print("6")
+                    if inspectIdx<=len(inspectTokens)-1: 
                         inspectToken=inspectTokens[inspectIdx]
                 
                 
             x,y=breakUp(cpyWord, culprits) #returns a list to join with the new line, and a list to join with the adjust 
             culprits=[]
             newLine.extend(x)
-            adjustSurvivors.extend(y)
-            print("7")
-
-    print("hm ", newLine)
+            adjustSurvivors.extend(y) 
+ 
     return newLine, adjustSurvivors
  
 
@@ -295,21 +293,17 @@ def problemPairSanityCheck(survivorProblemList, problemPairs):
 
 def adjustTokens(survivorFairList:list[FoundPotentialToken], adjustList:list[list[int, int, int, int]]):
     
-    def addRunning(running, Adj):
-        if running[0]==nextAdj[0]:
-            running[1]=nextAdj[1]
-            running[2]=nextAdj[2]
-            running[3]+=nextAdj[3]
-        else:
-            running[0]=nextAdj[0]
-            running[1]=0
-            running[2]=0
-            running[3]=0
+    def addRunning(running, Adj): 
+        running[0]=nextAdj[0]
+        running[1]=nextAdj[1]
+        running[2]=nextAdj[2]
+        running[3]+=nextAdj[3]
         return running
+    
     def addChange(running, fairTkn:FoundPotentialToken):
-        newStart=fairTkn.getStart()-running[2] #old start - running end
-        newEnd=newStart+ fairTkn.getEnd()-fairTkn.getStart()+1
-        newSymbolIdx=running[3] + fairTkn.getSymbolIndex()
+        newStart=fairTkn.getStart()-running[2]-1 #old start - running end
+        newEnd=newStart+ fairTkn.getEnd()-fairTkn.getStart()
+        newSymbolIdx=running[3] + fairTkn.getSymbolIndex() 
         fairTkn.setStart(newStart)
         fairTkn.setEnd(newEnd)
         fairTkn.setSymbolIndex(newSymbolIdx) 
@@ -324,7 +318,7 @@ def adjustTokens(survivorFairList:list[FoundPotentialToken], adjustList:list[lis
         return
     if len(adjustList)==0:
         return
-
+    print(adjustList, "\n", survivorFairList,"\n")
     while adjustIdx<len(adjustList) and fairIdx<len(survivorFairList):
         print("1")
         fairTkn=survivorFairList[fairIdx]
@@ -332,8 +326,11 @@ def adjustTokens(survivorFairList:list[FoundPotentialToken], adjustList:list[lis
         if nextAdj[0]==fairTkn.getSymbolIndex():
             if nextAdj[2]>fairTkn.getStart():
                 print("2")
-                addChange(running, fairTkn)
-                fairIdx+=1 
+                if running[2]<fairTkn.getStart() and running[2]!=0: #NOTE, test a hightoken of length 1! 
+                    print("2.5")
+                    #If running[2]=0, and [1]=0, then we aren't to move it at all. But if they are the same maybe?
+                    addChange(running, fairTkn)
+                fairIdx+=1  
             else:
                 print("3")
                 running=addRunning(running, nextAdj)
@@ -341,17 +338,46 @@ def adjustTokens(survivorFairList:list[FoundPotentialToken], adjustList:list[lis
         else:
             if nextAdj[0]>fairTkn.getSymbolIndex(): 
                 print("4")
-                fairIdx+=1 #Catch up to when we can actually use running basically
+                fairIdx+=1 #Catch up to when we can actually use running basically 
+                
             else: #nextAdj<fairTkn getsymbol
                 print("5")
-                running=addRunning(running, nextAdj) #Need the total idx adjustments.
+                while (nextAdj[0]<fairTkn.getSymbolIndex()):
+                    running=addRunning(running, nextAdj) #Need the total idx adjustments.
+                    adjustIdx+=1 
+                    if adjustIdx<len(adjustList):
+                        nextAdj=adjustList[adjustIdx]
+                    else: 
+                        break #Breaks out to if running[3]>0
+                #Maybe adjustrunning once more to get teh symbols right?
 
-    while fairIdx<len(survivorFairList) and adjustIdx==len(adjustList): #try to catch case when there is no nextAdjust, and wrap up all the remaining     
-        if running[0]==fairTkn.getSymbolIndex():
-            if running[2]<fairTkn.getStart():
+
+
+    print("check up: ", running)
+        #if running[3]>0:
+        #    running[3]-=1  #??? When we skip ahead, then we should subtract one maybe from running?
+
+    #If fairIdx=>len(survivor) and adjustIdx==len(adjustList):
+        #Maybe subtract one from the adjustIdx? or running?
+    while fairIdx<len(survivorFairList) and adjustIdx==len(adjustList): #try to catch case when there is no nextAdjust, and wrap up all the remaining   
+        fairTkn=survivorFairList[fairIdx] #This might need to be at teh start/end of the loop... Who knows?  
+
+
+
+        print("-1") 
+        if running[0]<=fairTkn.getSymbolIndex():
+            if running[2]<fairTkn.getStart() and running[0]==fairTkn.getSymbolIndex():
                 print("6")
                 addChange(running, fairTkn)
                 fairIdx+=1 
+            elif running[0]<fairTkn.getSymbolIndex():
+                print("6.5") 
+                fairTkn.setSymbolIndex(running[3] + fairTkn.getSymbolIndex() )
+                fairIdx+=1 
+                #TROUBLE, this was just a long shot. But didn't work. :/ may need to jostle aroudn
+                if running[3]>0:
+                    running[3]-=1   #??? When we skip ahead, then we should subtract one maybe from running?
+
             else:
                 print("7")
                 break
@@ -359,12 +385,218 @@ def adjustTokens(survivorFairList:list[FoundPotentialToken], adjustList:list[lis
             if running[0]>fairTkn.getSymbolIndex(): 
                 print("8")
                 fairIdx+=1 #Catch up to when we can actually use running basically
-            else: #nextAdj<fairTkn getsymbol
-                print("9")
+            else: #running[0] <fairTkn getsymbol
+                print("9") #Should be impossible
                 break #No more adjusts we can make
 
+         
+
+        
+    pass
+
+
+def adjustTokens2(tokenList:list[FoundPotentialToken], adjustList:list[list[int,int,int,int]]):
+    
+    def addRunning(running, Adj): 
+        running[0]=nextAdj[0]
+        running[1]=nextAdj[1]
+        running[2]=nextAdj[2]
+        running[3]+=nextAdj[3]
+        return running
+    
+    def addChange(running, tkn:FoundPotentialToken): #Might have issues at tkn lengths of 1
+        if running != [0,0,0,0]:
+            newStart=tkn.getStart()-running[2]-1 #old start - running end
+        else:
+            newStart=tkn.getStart()-running[2] #forcible solution :/
+            
+        newEnd=newStart+ tkn.getEnd()-tkn.getStart()
+        newSymbolIdx=running[3] + tkn.getSymbolIndex() 
+        tkn.setStart(newStart)
+        tkn.setEnd(newEnd)
+        tkn.setSymbolIndex(newSymbolIdx) 
+ 
+    #assuming survivor fair list and problem lists are sorted by wordIndx, then by start
+    running=[0,0,0,0]
+    adjIdx=0
+    tknIdx=0
+    #Base case
+    if len(tokenList)==0:
+        return tokenList, adjustList
+    if len(adjustList)==0:
+        return tokenList, adjustList
+    print(adjustList, "\n", tokenList)
+    #INSERT _ if adjustList >=2 length, set running to be first [0], and adjIdx=1. And make a seperte case if the length is just of 1.
+    while adjIdx<len(adjustList) and tknIdx<len(tokenList):
+        print("1")
+        tkn=tokenList[tknIdx]
+        nextAdj=adjustList[adjIdx]
+        if nextAdj[0]<tkn.getSymbolIndex():
+            print("5")
+            running=addRunning(running, nextAdj)
+            adjIdx+=1
+        else:
+            if nextAdj[0]>tkn.getSymbolIndex():
+                print("4")
+                addChange(running, tkn)
+                tknIdx+=1
+            else: # nextAdj[0]==tkn.getSymbolIdx():
+                if nextAdj[2]<tkn.getStart(): #Must allow running to be 0... I think? Otherwise need to make sure running is set to at least the first next, and then run this loop only if the list is longer than 2
+                    print("3")
+                    running=addRunning(running, nextAdj)
+                    adjIdx+=1
+                else:
+                    print("2")
+                    addChange(running, tkn)
+                    tknIdx+=1
+        
+
+
+    print("check up: ", running)
+    #Did not alter this beyond copy paste from adjust1.
+    while tknIdx<len(tokenList) and adjIdx==len(adjustList): #try to catch case when there is no nextAdjust, and wrap up all the remaining   
+        tkn=tokenList[tknIdx] #This might need to be at teh start/end of the loop... Who knows?   
+        print("-1") 
+        if running[0]<=tkn.getSymbolIndex():
+            if running[2]<tkn.getStart() and running[0]==tkn.getSymbolIndex():
+                print("6")
+                addChange(running, tkn)
+                tknIdx+=1 
+            elif running[0]<tkn.getSymbolIndex():
+                print("6.5") 
+                tkn.setSymbolIndex(running[3] + tkn.getSymbolIndex() )
+                tknIdx+=1 
+                #TROUBLE, this was just a long shot. But didn't work. :/ may need to jostle aroudn
+                if running[3]>0:
+                    running[3]-=1   #??? When we skip ahead, then we should subtract one maybe from running? 
+            else:
+                print("7")
+                break
+        else:
+            if running[0]>tkn.getSymbolIndex(): 
+                print("8")
+                tknIdx+=1 #Catch up to when we can actually use running basically
+            else: #running[0] <fairTkn getsymbol
+                print("9") #Should be impossible
+                break #No more adjusts we can make
 
     pass
+
+
+
+def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,int,int,int]]): 
+    #Base case
+    if len(tokenList)==0:
+        return tokenList, adjustList
+    if len(adjustList)==0:
+        return tokenList, adjustList 
+
+    def addRunning(running, Adj): 
+        if Adj!=None: 
+            running[0]=Adj[0]
+            running[1]=Adj[1]
+            running[2]=Adj[2]
+            running[3]+=Adj[3]
+        return running
+    
+    def addChange(running, tkn:FoundPotentialToken): #Might have issues at tkn lengths of 1
+        if running[0]!=None and running[0]!=tkn.getSymbolIndex(): #No need to adjust length of string, just the index is required 
+            tkn.setSymbolIndex(running[3]+tkn.getSymbolIndex()-1)
+        else: 
+            newStart=tkn.getStart()-running[2]-1 #old start - running end 
+            newEnd=newStart+ tkn.getEnd()-tkn.getStart()
+            newSymbolIdx=running[3] + tkn.getSymbolIndex() #running[3] counts how many words have been added total as a result of the breaks. For example Jacob...,,..., with ..., and ... takne results in 5 string, but only an increase of 4 in index. 
+            tkn.setStart(newStart)
+            tkn.setEnd(newEnd)
+            tkn.setSymbolIndex(newSymbolIdx) 
+ 
+    #assuming survivor fair list and problem lists are sorted by wordIndx, then by start
+    running=[None, None, None, 0]
+    adjIdx=0
+    tknIdx=0 
+    def assignNext():
+        nonlocal adjIdx 
+        adjIdx+=1
+        if adjIdx>=len(adjustList):
+            #adjIdx-=1 #extra detail for later
+            return None
+        else:
+            return adjustList[adjIdx]
+        
+    nextAdj=adjustList[adjIdx] 
+
+    while adjIdx<len(adjustList) and tknIdx<len(tokenList):
+        tkn=tokenList[tknIdx]
+        print("1")  
+        print("tkn: ",tkn,"\n", 
+              "run: ",running,"\n",
+              "nextAdj",nextAdj)
+
+        if nextAdj[0]<tkn.getSymbolIndex():
+            print("5")
+            running=addRunning(running, nextAdj) 
+            nextAdj=assignNext()
+
+        else:
+            if nextAdj[0]>tkn.getSymbolIndex():
+                print("4")
+                if running[0]!=None: #Or adjIdx >0?
+                    addChange(running, tkn)
+                tknIdx+=1 
+            else: #nextAdj[0]==tkn.getSymbolIdx()  
+                if nextAdj[2]<tkn.getStart(): #Maybe we should compare start with start instead of end with start... just a thought.
+                    print("3")
+                    running=addRunning(running, nextAdj)
+                    nextAdj=assignNext()
+                else:
+                    print("2")
+                    if running[0]!=None: #Should also check running's [0]<=tkn symbol? maybe?
+                        addChange(running, tkn)
+                    tknIdx+=1 
+
+
+    
+    print("tkn: ",tkn,"\n", 
+            "run: ",running,"\n",
+            "nextAdj",nextAdj)
+    if tknIdx<len(tokenList):
+        print("7") 
+        #First, make sure if nextAdj symbol is greater, that we catch up 
+        #Then, allow the last thing to take place... 
+        if nextAdj!=None: #Should always be unless a sudden break occurs above.
+            while (nextAdj[0]>tkn.getSymbolIndex() and tknIdx<len(tokenList)):
+                print("tkn: ",tkn,"\n", 
+                    "run: ",running,"\n",
+                    "nextAdj",nextAdj)
+                tkn=tokenList[tknIdx] #tkn idx is gaurnteed not yet to have running applied to it from previous loop.
+                if running[0] != None:
+                    addChange(running, tkn)
+                tknIdx+=1
+
+            running=addRunning(running, nextAdj)
+            nextAdj=None 
+
+        while (tknIdx<len(tokenList)):
+            tkn=tokenList[tknIdx]
+            print("tkn: ",tkn,"\n", 
+                "run: ",running,"\n",
+                "nextAdj",nextAdj)
+            if tkn.getSymbolIndex()==running[0]: #Propegate it out so what if we're bigger?
+                print("8")
+                if tkn.getStart()>running[2]:
+                    addChange(running, tkn)
+            elif tkn.getSymbolIndex()>running[0]:
+                print("9")
+                addChange(running, tkn)
+            tknIdx+=1
+
+
+
+
+
+ 
+    pass
+
 
 
 def main():
@@ -474,42 +706,152 @@ def main():
         sortBy(outOfOrder, [[lambda x:x.getSymbolIndex(), False], [lambda x:x.getStart(), False]])
         print(outOfOrder)
     
-    test="createNewLine2"
+    #NOTE
+    #Need to test finding high tokens of length 1, 
+        #Then accepting tokens of length 1 /create new line
+            #then adjusting tokens of length 1... :/ 
+    test=" "
     if test=="createNewLine2":
         inOrderSurvivor=[FoundPotentialToken("...", 0, 5, 7, 0)] 
         wordList=["Jacob...,,...",]
-        line, adjusts=acceptToken(wordList, inOrderSurvivor)
+        line, adjusts=acceptToken(wordList, inOrderSurvivor) #Expect Jacob ... ,,...
         print("resulting line: ",line)
         print("adjustments : ", adjusts)
-        print("BREAK")
+        print("BREAK 1")
 
         inOrder=[FoundPotentialToken("...", 0, 5, 7, 0),
                  FoundPotentialToken("...", 0, 10, 12, 0)]
-        wordList=["Jacob...,,...",]
+        wordList=["Jacob...,,...",] 
+        line, adjusts=acceptToken(wordList, inOrder) #expect jacob ... ,, ...
+        print("resulting line: ",line)
+        print("adjustments : ", adjusts)
+        print("BREAK 2")
+          
+
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0), FoundPotentialToken("...", 0, 5, 7, 1)]
+        wordList=["Jacob...,,...,","Jacob...,,...,"] #expect Jacob ... ,,...,   x2
         line, adjusts=acceptToken(wordList, inOrder)
         print("resulting line: ",line)
         print("adjustments : ", adjusts)
-        print("BREAK")
-        
+        print("BREAK 3")
+
         inOrder=[FoundPotentialToken("...", 0, 5, 7, 0),
-                 FoundPotentialToken("...", 0, 10, 12, 0)]
-        wordList=["Jacob...,,...,",]
+                 FoundPotentialToken("...", 0, 10, 12, 0),
+                 FoundPotentialToken("...", 0, 5, 7, 1),
+                 FoundPotentialToken("...", 0, 10, 12, 1)]
+        line, adjusts=acceptToken(wordList, inOrder) #expect Jacob ... ,, ... , x2
+        print("resulting line: ",line)
+        print("adjustments : ", adjusts)
+        print("BREAK 4")
+
+
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0),
+                 FoundPotentialToken("...", 0, 10, 12, 0),
+                 FoundPotentialToken("...", 0, 5, 7, 1) ] #Expect jacob ... ,, ... , jacob ... ,,...,
         line, adjusts=acceptToken(wordList, inOrder)
         print("resulting line: ",line)
         print("adjustments : ", adjusts)
-        print("BREAK")
+        print("BREAK 5")
+
+        #Then one at start, end, etc
+        inOrder=[FoundPotentialToken("...", 0, 0, 2, 0),FoundPotentialToken("...", 0, 5, 7, 0), FoundPotentialToken("...", 0, 0, 2, 1), FoundPotentialToken("...", 0, 2, 4, 2)]
+            #ERROR, problem when the index is at 0 for the hightoken... :/
+        wordList=["...,,...", "...,,", ",,..."]
+        line, adjusts=acceptToken(wordList, inOrder) #expect ... ,, ... ... ,, ,, ...
+        print("resulting line: ",line)
+        print("adjustments : ", adjusts)
+        print("BREAK 6")
+
+
+
 
     test=" "
     if test=="adjustTokens":
     #survivorFairList:list[FoundPotentialToken], adjustList:list[list[int, int, int, int]]
         #TESTS BASED ON CREATENEWLINE returns
-        inOrderSurvivor=[FoundPotentialToken("...", 0, 5, 7, 0)] 
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0)] 
         wordList=["Jacob...,,...",]
-        line, adjusts=acceptToken(wordList, inOrderSurvivor)
+        line, adjusts=acceptToken(wordList, inOrder) 
         print("resulting line: ",line)
-            #adjust=[[0,5,7,2]] LATER AFTER THE ACCEPT IS FIXED
-            #adjustTokens(inOrderSurvivor, adjust)
-            #print(inOrderSurvivor)
+        print("resulting adjusts: ", adjusts) 
+
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 10, 12, 0)]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) #Expect [2,4,2], 2 for token ,,... , 2,4 for start end.
+        print("e [2,4,2]")
+        print("\n")
+
+
+        inOrder=[ 
+                 FoundPotentialToken("...", 0, 10, 12, 0)]
+        wordList=["Jacob...,,...",] 
+        line, adjusts=acceptToken(wordList, inOrder) #expect jacob ... ,, ...
+        print("resulting line: ",line) 
+        print("resulting adjusts: ", adjusts) 
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 5, 7, 0)]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) #Expect [5,7,0], as the change shouldn't affect it since it starts before and cahgnes are made
+        print("e [5,7,0]")
+        print("\n")
+        
+
+    #ISSUE lingering six at end!
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0), FoundPotentialToken("...", 0, 5, 7, 1)]
+        wordList=["Jacob...,,...,","Jacob...,,...,"] #expect Jacob ... ,,...,   x2
+        line, adjusts=acceptToken(wordList, inOrder)
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 10, 12, 0),FoundPotentialToken("...", 0, 10, 12, 1)]  
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor)    #expect [2, 4, 2], [2,4,5]
+        print("e [2, 4, 2], [2,4,5]")
+        print("\n")
+        #We end up in a situation which asks us to choose between 1+3=4, or 1+5=6, so no wonder I'm having such toruble with the algorithm. There must be some other conditional I'm missing... Or this is a fools errand.
+        
+
+    #ISSUE Lingering six at start
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0),
+                 FoundPotentialToken("...", 0, 10, 12, 0)]
+        line, adjusts=acceptToken(wordList, inOrder) #expect Jacob ... ,, ... , x2
+        print("resulting line: ",line)   
+        print("resulting adjusts: ", adjusts) 
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 5, 7, 1),
+                 FoundPotentialToken("...", 0, 10, 12, 1)]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor)    #expect [5, 7, 5], [10, 12, 5]
+        print("e [5, 7, 5], [10, 12, 5]")
+        print("\n")
+        
+
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 1),
+                 FoundPotentialToken("...", 0, 10, 12, 1) ]
+        line, adjusts=acceptToken(wordList, inOrder) #expect Jacob ... ,, ... , x2
+        print("resulting line: ",line)   
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 5, 7, 0),
+                 FoundPotentialToken("...", 0, 10, 12, 0)]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor)    #expect [5, 7, 0], [10, 12, 0]
+        print("e [5, 7, 0], [10, 12, 0]")
+        print("\n")
+
+        if (False):
+            #Later
+            inOrder=[FoundPotentialToken("...", 0, 5, 7, 0),
+                    FoundPotentialToken("...", 0, 10, 12, 0),
+                    FoundPotentialToken("...", 0, 5, 7, 1) ] #Expect jacob ... ,, ... , jacob ... ,,...,
+            line, adjusts=acceptToken(wordList, inOrder)
+            #print("resulting line: ",line)  
+            #Then one at start, end, etc
+            inOrder=[FoundPotentialToken("...", 0, 0, 2, 0),FoundPotentialToken("...", 0, 5, 7, 0), FoundPotentialToken("...", 0, 0, 2, 1), FoundPotentialToken("...", 0, 2, 4, 2)]
+                #ERROR, problem when the index is at 0 for the hightoken... :/
+            wordList=["...,,...", "...,,", ",,..."]
+            line, adjusts=acceptToken(wordList, inOrder) #expect ... ,, ... ... ,, ,, ...
+            #print("resulting line: ",line) 
+
+
+        
+
+
 
     #When adjusting, if we had more than 1 split... I wonder about it... I think it's fine... [symbol index, start end of word, and indexes t oadjust by [add to it]]
     
