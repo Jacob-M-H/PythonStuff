@@ -710,7 +710,7 @@ def main():
     #Need to test finding high tokens of length 1, 
         #Then accepting tokens of length 1 /create new line
             #then adjusting tokens of length 1... :/ 
-    test=" "
+    test="createNewLine2"
     if test=="createNewLine2":
         inOrderSurvivor=[FoundPotentialToken("...", 0, 5, 7, 0)] 
         wordList=["Jacob...,,...",]
