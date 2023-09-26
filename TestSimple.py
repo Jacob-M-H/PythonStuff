@@ -206,26 +206,26 @@ def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
     adjIndex=0
     if culprits==[]:
         return [], []
-    else:
-        #print("Len of culrpits : ", culprits)
-        adjIndex=0
+    else: 
+        print("else")
         crime=culprits.pop(0) 
+        RunStart=0
+        ADJIDX=1
+        SYMIDX=crime.getSymbolIndex() 
+
         f1=cpyWord[:crime.getStart()]
         f2=cpyWord[crime.getStart():crime.getEnd()+1]
         f3=cpyWord[crime.getEnd()+1:]
-        running=crime.getEnd()+1
-        adjIndex=1 #f2 !=""
+        running=crime.getEnd()+1 
         if f1!="":
-            adjIndex+=1 
-        #print("Found ", f1,", ",f2,", ", f3,", running: ", running)
-        adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
-        if f1!="":
-            line.append(f1)
+            adj.append([SYMIDX, RunStart, crime.getStart()-1, ADJIDX]) 
+            line.append(f1) 
+        adj.append([SYMIDX, crime.getStart(), crime.getEnd(), ADJIDX]) 
         line.append(f2)
-        #One word idx, and a list of culprits to adjust
+        RunStart=crime.getEnd()+1 
 
-        while (len(culprits)>0):
-            adjIndex=0
+        while (len(culprits)>0): 
+            print("while culprits>0")
             cpyWord=f3
             #print("deal with remaining word(s): ", f3)
             if (cpyWord==""):
@@ -235,24 +235,20 @@ def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
             f1=cpyWord[:crime.getStart()-running]
             f2=cpyWord[crime.getStart()-running:crime.getEnd()+1-running]
             f3=cpyWord[crime.getEnd()+1-running:]
-            running=crime.getEnd()+1
-            adjIndex=1 #f2 !="" 
-            #f2 !=""
+            running=crime.getEnd()+1  
             if f1!="":
-                adjIndex+=1
-            #print("Found ", f1,", ",f2,", ", f3,", running: ", running)
-            adj.append([crime.getSymbolIndex(), crime.getStart(), crime.getEnd(), adjIndex])
-            if f1!="":
-                line.append(f1)
+                adj.append([SYMIDX, RunStart, crime.getStart()-1, ADJIDX]) 
+                line.append(f1) 
+            adj.append([SYMIDX, crime.getStart(), crime.getEnd(), ADJIDX]) 
             line.append(f2)
+            RunStart=crime.getEnd()+1
     
         if f3!="":# in the event len(culprits)==0)
-            #print("final cpy word add (assuming it's either f3 or the last bit of last cpyWord): ", f3)
+            print("f3!=\"\"") 
+            start=max(crime.getEnd()+1, RunStart) 
+            adj.append([SYMIDX, start, start+len(f3)-1, ADJIDX]) #Only one additional left
             line.append(f3) 
-            if len(f3)==1: #A forced solution, might need something similar of the token for f2, or f1 is of length 1 ... NOTE FUTURE
-                adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(f3), 1]) #Only one additional left
-            else:
-                adj.append([crime.getSymbolIndex(), crime.getEnd()+1, crime.getEnd()+len(f3)-1, 1]) #Only one additional left
+
         return line, adj
 
 
@@ -266,7 +262,7 @@ def acceptToken(wordList:list[str], inspectTokens:list[FoundPotentialToken]):
     adjustSurvivors=[]#insert error if there is a Token with a wordIndex beyond our wordList (early sanity check)
     for wordIdx in range(len(wordList)):  
         cpyWord=wordList[wordIdx]
-        if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==inspectIdx: #Might be an unncessary econd condition here 
+        if wordIdx<inspectToken.getSymbolIndex() or len(inspectTokens)==inspectIdx: #Might be an unncessary econd condition here [eh, fine I think in event inspectIdx over extends]
             #print("Needs testing!") #NOTE TEST ME, jacob...,,... x2, and only take both high tokens fro the first. triggers.
             newLine.append(cpyWord)
         else:  
