@@ -663,6 +663,88 @@ def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,
         tknIdx+=1
         #ins+=1 ? Only want to increase when a split occurs. Since no split occurs hence forth no need
 
+#Override 2, try adding back the changing of HighTokenIndexes and SymbolIndexs
+def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,int,int,int]]):
+    #Base case
+    if len(tokenList)==0:
+        return tokenList, adjustList
+    if len(adjustList)==0:
+        return tokenList, adjustList 
+
+    def addRunning(running, Adj): 
+        if Adj!=None: 
+            running[0]=Adj[0]
+            running[1]=Adj[1]
+            running[2]=Adj[2]
+            #running[3]+=Adj[3] simply replaced by ins
+        return running
+    
+    def addChange(running, tkn:FoundPotentialToken): #Might have issues at tkn lengths of 1
+        if running[0]!=None and running[0]!=tkn.getSymbolIndex(): #No need to adjust length of string, just the index is required 
+            tkn.setSymbolIndex(running[3]+tkn.getSymbolIndex()-1)
+        else: 
+            newStart=tkn.getStart()-running[2]-1 #old start - running end 
+            newEnd=newStart+ tkn.getEnd()-tkn.getStart()
+            #newSymbolIdx=running[3] + tkn.getSymbolIndex() #running[3] counts how many words have been added total as a result of the breaks. For example Jacob...,,..., with ..., and ... takne results in 5 string, but only an increase of 4 in index. 
+            newSymbolIdx=ins+tkn.getSymbolIndex() #New for replacing above by ins
+            tkn.setStart(newStart)
+            tkn.setEnd(newEnd)
+            tkn.setSymbolIndex(newSymbolIdx) 
+ 
+    ######
+    ins=0
+    LastIdx=None
+    adjIdx=0
+    tknIdx=0
+    running=[None, None, None, 0]
+    print("Trying together now")
+    while adjIdx<len(adjustList) and tknIdx<len(tokenList):
+        tkn=tokenList[tknIdx] 
+        nextAdj=adjustList[adjIdx]
+        if nextAdj[0]<tkn.getSymbolIndex():
+            print("5") 
+            running=addRunning(running, nextAdj) 
+            adjIdx+=1  
+
+            if LastIdx==None:
+                LastIdx=nextAdj[0]
+            elif LastIdx==nextAdj[0]:
+                ins+=1
+            else:
+                LastIdx=nextAdj[0] 
+
+
+        else: 
+            if nextAdj[0]>tkn.getSymbolIndex():
+                print("4")  
+                if running[0]!=None: #Or adjIdx >0?
+                    addChange(running, tkn)
+                tknIdx+=1 
+                #ins+=1? #Don't increase insert amount, no split has occured.
+                print("tkn: ",tkn, " try increase of ", ins) #Maybe LastIdx=None?
+            else: #nextAdj[0]==tkn.getSymbolIdx()  
+                if nextAdj[2]<tkn.getStart(): #Maybe we should compare start with start instead of end with start... just a thought.
+                    print("3")  
+                    running=addRunning(running, nextAdj)
+                    adjIdx+=1
+                    ins+=1 #Split occured
+                else:
+                    print("2")  
+                    if running[0]!=None: #Should also check running's [0]<=tkn symbol? maybe?
+                        addChange(running, tkn)
+                    tknIdx+=1 
+                    #ins+=1? #No split, so don't increase teh 'insert' amount, I think. Might have to check on a 1 lengt hhigh token...
+                    print("tkn: ",tkn, " try increase of ", ins) #Maybe LastIdx=None?
+
+
+    while tknIdx<len(tokenList):
+        tkn=tokenList[tknIdx]
+        print("tkn: ",tkn, " try increase of ", ins)
+        tknIdx+=1
+        tkn.setSymbolIndex(tkn.getSymbolIndex()+ins) #Either stay same or increases.
+        
+        #ins+=1 ? Only want to increase when a split occurs. Since no split occurs hence forth no need
+
 
 
  
