@@ -518,38 +518,36 @@ def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,
         
     nextAdj=adjustList[adjIdx] 
 
-    skip=False
-
+    skip=False 
     while adjIdx<len(adjustList) and tknIdx<len(tokenList):
         tkn=tokenList[tknIdx]
         print("1")  
         print("tkn: ",tkn,"\n", 
               "run: ",running,"\n",
               "nextAdj",nextAdj)
+        
+
 
         if nextAdj[0]<tkn.getSymbolIndex():
             print("5")
             running=addRunning(running, nextAdj)  
             #Only adjust per difference in symbol Idx [until that Idx is handled?]
-            if skip:
-                running[3]-=1
-                skip=False
+         
             nextAdj=assignNext()
             #maybe check on an assumption? 
-        else:
-            skip=True
+        else: 
             if nextAdj[0]>tkn.getSymbolIndex():
-                print("4")
+                print("4") 
                 if running[0]!=None: #Or adjIdx >0?
                     addChange(running, tkn)
                 tknIdx+=1 
             else: #nextAdj[0]==tkn.getSymbolIdx()  
                 if nextAdj[2]<tkn.getStart(): #Maybe we should compare start with start instead of end with start... just a thought.
-                    print("3")
+                    print("3") 
                     running=addRunning(running, nextAdj)
                     nextAdj=assignNext()
                 else:
-                    print("2")
+                    print("2") 
                     if running[0]!=None: #Should also check running's [0]<=tkn symbol? maybe?
                         addChange(running, tkn)
                     tknIdx+=1 
@@ -596,6 +594,37 @@ def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,
 
  
     pass
+
+#override
+def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,int,int,int]]):
+    removeAddtional=-1
+    newIndex=0
+    HasSplit=False
+    seenTokens=0
+    LastIdx=None
+    ins=0
+    for token in tokenList:
+        for adjust in adjustList:
+            if adjust[0]==token.getSymbolIndex():
+                if adjust[2]<token.getStart():
+                    newIndex+=1
+                    removeAddtional+=1 
+                    ins+=1
+            elif adjust[0]<token.getSymbolIndex():
+                if LastIdx==None:
+                    LastIdx=adjust[0]
+                elif LastIdx==adjust[0]:
+                    ins+=1
+                else:
+                    LastIdx=adjust[0]
+                newIndex+=1
+        
+        print("Increase of index for token \n", token, "\nis ", newIndex+removeAddtional)          
+        print("try an increase of ", ins) 
+        
+        ins=0
+        LastIdx=None
+        newIndex=0
 
 
 
@@ -765,8 +794,8 @@ def main():
 
 
 
-    test="adjustTokens"
-    if test=="adjustTokens":
+    test="adjustTokensLong"
+    if test=="adjustTokensBasic":
     #survivorFairList:list[FoundPotentialToken], adjustList:list[list[int, int, int, int]]
         #TESTS BASED ON CREATENEWLINE returns
         inOrder=[FoundPotentialToken("...", 0, 5, 7, 0)] 
@@ -848,7 +877,54 @@ def main():
             line, adjusts=acceptToken(wordList, inOrder) #expect ... ,, ... ... ,, ,, ...
             #print("resulting line: ",line) 
 
+    if test=="adjustTokensLong":
+        #jacob-...-,,..., NOBREAK jacob...,,...,
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0), 
+                ] 
+        wordList=["Jacob...,,...,","NOBREAK", "Jacob...,,...,"]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
 
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 10, 12, 0), FoundPotentialToken("...", 0, 5, 7, 2),FoundPotentialToken("...", 0, 10, 12, 2)]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e [2,4,2], [5,7,4], [10,12,4]")
+        print("\n")
+
+        #jacob...-,,-...-, NOBREAK jacob-...-,,...,
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0),
+                FoundPotentialToken("...", 0, 10, 12, 0),
+                FoundPotentialToken("...", 0, 5, 7, 2)
+                ] 
+        wordList=["Jacob...,,...,","NOBREAK", "Jacob...,,...,"]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 10, 12, 2)]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e [2,4,8]")
+        print("\n")
+
+
+        #jacob...-,,-...-, NOBREAK jacob-...-,,...,
+        inOrder=[FoundPotentialToken("...", 0, 5, 7, 0),
+                FoundPotentialToken("...", 0, 10, 12, 0), 
+                FoundPotentialToken("...", 0, 5, 7, 1),
+                FoundPotentialToken("...", 0, 5, 7, 2)
+                ] 
+        wordList=["Jacob...,,...,","Jacob...,,...,", "Jacob...,,...,"]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 10, 12, 1), FoundPotentialToken("...", 0, 10, 12, 2)]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e [2,4,7], [2,4,10]")
+        print("\n")
         
 
 
