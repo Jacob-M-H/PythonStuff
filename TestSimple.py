@@ -206,8 +206,7 @@ def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
     adjIndex=0
     if culprits==[]:
         return [], []
-    else: 
-        print("else")
+    else:  
         crime=culprits.pop(0) 
         RunStart=0
         ADJIDX=1
@@ -224,8 +223,7 @@ def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
         line.append(f2)
         RunStart=crime.getEnd()+1 
 
-        while (len(culprits)>0): 
-            print("while culprits>0")
+        while (len(culprits)>0):  
             cpyWord=f3
             #print("deal with remaining word(s): ", f3)
             if (cpyWord==""):
@@ -243,8 +241,7 @@ def breakUp(cpyWord:str, culprits:list[FoundPotentialToken]):
             line.append(f2)
             RunStart=crime.getEnd()+1
     
-        if f3!="":# in the event len(culprits)==0)
-            print("f3!=\"\"") 
+        if f3!="":# in the event len(culprits)==0) 
             start=max(crime.getEnd()+1, RunStart) 
             adj.append([SYMIDX, start, start+len(f3)-1, ADJIDX]) #Only one additional left
             line.append(f3) 
@@ -521,6 +518,8 @@ def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,
         
     nextAdj=adjustList[adjIdx] 
 
+    skip=False
+
     while adjIdx<len(adjustList) and tknIdx<len(tokenList):
         tkn=tokenList[tknIdx]
         print("1")  
@@ -530,10 +529,15 @@ def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,
 
         if nextAdj[0]<tkn.getSymbolIndex():
             print("5")
-            running=addRunning(running, nextAdj) 
+            running=addRunning(running, nextAdj)  
+            #Only adjust per difference in symbol Idx [until that Idx is handled?]
+            if skip:
+                running[3]-=1
+                skip=False
             nextAdj=assignNext()
-
+            #maybe check on an assumption? 
         else:
+            skip=True
             if nextAdj[0]>tkn.getSymbolIndex():
                 print("4")
                 if running[0]!=None: #Or adjIdx >0?
@@ -706,7 +710,7 @@ def main():
     #Need to test finding high tokens of length 1, 
         #Then accepting tokens of length 1 /create new line
             #then adjusting tokens of length 1... :/ 
-    test="createNewLine2"
+    test=" "
     if test=="createNewLine2":
         inOrderSurvivor=[FoundPotentialToken("...", 0, 5, 7, 0)] 
         wordList=["Jacob...,,...",]
@@ -761,7 +765,7 @@ def main():
 
 
 
-    test=" "
+    test="adjustTokens"
     if test=="adjustTokens":
     #survivorFairList:list[FoundPotentialToken], adjustList:list[list[int, int, int, int]]
         #TESTS BASED ON CREATENEWLINE returns
