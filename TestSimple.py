@@ -587,28 +587,20 @@ def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,
                 print("9")
                 addChange(running, tkn)
             tknIdx+=1
-
-
-
-
-
  
     pass
 
-#override
+
+
+#override 
 def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,int,int,int]]):
-    removeAddtional=-1
-    newIndex=0
-    HasSplit=False
-    seenTokens=0
+     
     LastIdx=None
     ins=0
     for token in tokenList:
         for adjust in adjustList:
             if adjust[0]==token.getSymbolIndex():
-                if adjust[2]<token.getStart():
-                    newIndex+=1
-                    removeAddtional+=1 
+                if adjust[2]<token.getStart(): 
                     ins+=1
             elif adjust[0]<token.getSymbolIndex():
                 if LastIdx==None:
@@ -616,17 +608,64 @@ def adjustTokens3(tokenList:list[FoundPotentialToken], adjustList:list[list[int,
                 elif LastIdx==adjust[0]:
                     ins+=1
                 else:
-                    LastIdx=adjust[0]
-                newIndex+=1
-        
-        print("Increase of index for token \n", token, "\nis ", newIndex+removeAddtional)          
+                    LastIdx=adjust[0] 
+
+            #If adjust is > tokenSymbolIndex? We would add one to Ins and iterate Token I think
+
+
+        print(token)          
         print("try an increase of ", ins) 
         
         ins=0
-        LastIdx=None
-        newIndex=0
+        LastIdx=None 
+    ######
+    ins=0
+    LastIdx=None
+    adjIdx=0
+    tknIdx=0
+    print("Trying together now")
+    while adjIdx<len(adjustList) and tknIdx<len(tokenList):
+        tkn=tokenList[tknIdx] 
+        nextAdj=adjustList[adjIdx]
+        if nextAdj[0]<tkn.getSymbolIndex():
+            print("5") 
+            adjIdx+=1  
+
+            if LastIdx==None:
+                LastIdx=nextAdj[0]
+            elif LastIdx==nextAdj[0]:
+                ins+=1
+            else:
+                LastIdx=nextAdj[0] 
 
 
+        else: 
+            if nextAdj[0]>tkn.getSymbolIndex():
+                print("4")  
+                tknIdx+=1 
+                #ins+=1? #Don't increase insert amount, no split has occured.
+                print("tkn: ",tkn, " try increase of ", ins) #Maybe LastIdx=None?
+            else: #nextAdj[0]==tkn.getSymbolIdx()  
+                if nextAdj[2]<tkn.getStart(): #Maybe we should compare start with start instead of end with start... just a thought.
+                    print("3")  
+                    adjIdx+=1
+                    ins+=1 #Split occured
+                else:
+                    print("2")  
+                    tknIdx+=1 
+                    #ins+=1? #No split, so don't increase teh 'insert' amount, I think. Might have to check on a 1 lengt hhigh token...
+                    print("tkn: ",tkn, " try increase of ", ins) #Maybe LastIdx=None?
+
+
+    while tknIdx<len(tokenList):
+        tkn=tokenList[tknIdx]
+        print("tkn: ",tkn, " try increase of ", ins)
+        tknIdx+=1
+        #ins+=1 ? Only want to increase when a split occurs. Since no split occurs hence forth no need
+
+
+
+ 
 
 def main():
     test=""    
