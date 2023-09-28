@@ -915,7 +915,7 @@ def main():
 
 
 
-    test="adjustTokensLong"
+    test="adjustTokensTough"
     if test=="adjustTokensBasic":
     #survivorFairList:list[FoundPotentialToken], adjustList:list[list[int, int, int, int]]
         #TESTS BASED ON CREATENEWLINE returns
@@ -1046,10 +1046,190 @@ def main():
         print(inOrderSurvivor) 
         print("e [2,4,7], [2,4,10]")
         print("\n")
+
+    if test=="adjustTokensTough":
+        #jacob-...-,,..., NOBREAK jacob...,,..., 
+        totalPotential=[FoundPotentialToken("...", 0, 0, 2, 1),
+                        FoundPotentialToken("...", 0, 4, 6, 1),
+                        FoundPotentialToken("...", 0, 0, 2, 4),
+                        FoundPotentialToken("...", 0, 4, 6, 4),
+                        FoundPotentialToken("...", 0, 8, 10, 4),
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5) ]
+        inOrder=[ FoundPotentialToken("...", 0, 0, 2, 1),
+                        FoundPotentialToken("...", 0, 4, 6, 1),
+                        FoundPotentialToken("...", 0, 0, 2, 4),
+                        FoundPotentialToken("...", 0, 4, 6, 4),
+                        FoundPotentialToken("...", 0, 8, 10, 4),
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5) ] 
+        testList1=["NOBREAKORREMOVE", "...,..." , "NOBREAK", 
+                   "NOBREAK", "...,...,..." , "...,...,...,..." , 
+                   "NOBREAK", "NOBREAK", "NOBREAK"]
+        wordList=testList1
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+
+        inOrderSurvivor=[]   
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e Test if breaks are alright")
+        print("\n")
+
+
+        #Break first 1, adjust all the others
+        inOrder=[ FoundPotentialToken("...", 0, 0, 2, 1)
+                          ] 
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 4, 6, 1),
+                        FoundPotentialToken("...", 0, 0, 2, 4),
+                        FoundPotentialToken("...", 0, 4, 6, 4),
+                        FoundPotentialToken("...", 0, 8, 10, 4),
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5)]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e [1,3,2], the rest should just have 1 additional wordIdx]")
+        print("\n")
+
+        #Break second 1, adjust all the others
+        inOrder=[ FoundPotentialToken("...", 0, 4, 6, 1)
+                          ] 
+        inOrderSurvivor=[FoundPotentialToken("...", 0, 0, 2, 1), 
+                        FoundPotentialToken("...", 0, 0, 2, 4),
+                        FoundPotentialToken("...", 0, 4, 6, 4),
+                        FoundPotentialToken("...", 0, 8, 10, 4),
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5)]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e [0,2,1], the rest should just have 1 additional wordIdx]")
+        print("\n")
+
+
+        #Break first and second 1, adjust all others
+        inOrder=[ FoundPotentialToken("...", 0, 0, 2, 1), FoundPotentialToken("...", 0, 4, 6, 1)
+                          ] 
+        inOrderSurvivor=[  
+                        FoundPotentialToken("...", 0, 0, 2, 4),
+                        FoundPotentialToken("...", 0, 4, 6, 4),
+                        FoundPotentialToken("...", 0, 8, 10, 4),
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5)]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e the rest should just have 2 additional wordIdx]")
+        print("\n")
+
+        #Fantastic. Those seem working
+        print("continue? y/n")
+        response=input().lower()
+        if response[0]=="n":
+            return
         
+        
+        #Break first 4, adjust all others
+        inOrder=[  FoundPotentialToken("...", 0, 0, 2, 4),
+                          ] 
+        inOrderSurvivor=[ FoundPotentialToken("...", 0, 0, 2, 1), 
+                        FoundPotentialToken("...", 0, 4, 6, 1), 
+                        
+                        FoundPotentialToken("...", 0, 4, 6, 4),
+                        FoundPotentialToken("...", 0, 8, 10, 4),
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5)]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e [0,2,1], [4,6,1], [1, 3, 5],[5, 7, 5], rest increase by 1")
+        print("\n")
+
+        #Break second 4, adjust all others
+        inOrder=[   FoundPotentialToken("...", 0, 4, 6, 4),
+                          ] 
+        inOrderSurvivor=[ FoundPotentialToken("...", 0, 0, 2, 1), 
+                        FoundPotentialToken("...", 0, 4, 6, 1), 
+                        FoundPotentialToken("...", 0, 0, 2, 4),
+                        
+                        FoundPotentialToken("...", 0, 8, 10, 4),
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5)]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e [0,2,1], [4,6,1], [0,2,4], [1, 3, 6], rest increase by 2")
+        print("\n")
+        #GOOD! 
+        print("continue? y/n")
+        response=input().lower()
+        if response[0]=="n":
+            return
+        
+        #Break 4 entirely, break 2 entirely
+        inOrder=[    FoundPotentialToken("...", 0, 0, 2, 1), 
+                        FoundPotentialToken("...", 0, 4, 6, 1), 
+                        FoundPotentialToken("...", 0, 0, 2, 4),
+                        FoundPotentialToken("...", 0, 4, 6, 4),
+                        FoundPotentialToken("...", 0, 8, 10, 4)
+                          ] 
+        inOrderSurvivor=[  
+                        FoundPotentialToken("...", 0, 0, 2, 5),
+                        FoundPotentialToken("...", 0, 4, 6, 5),
+                        FoundPotentialToken("...", 0, 8, 10, 5),
+                        FoundPotentialToken("...", 0, 12, 14, 5)]
+        line, adjusts=acceptToken(wordList, inOrder) 
+        print("resulting line: ",line)
+        print("resulting adjusts: ", adjusts) 
+        adjustTokens3(inOrderSurvivor, adjusts)
+        print(inOrderSurvivor) 
+        print("e increase all by 6 (so 11 all)") #Remember the comma left overs increase it beyond just a straight break!
+        print("\n")
 
 
 
+
+
+
+
+
+
+
+
+
+        #NOBREAKORREMOVE, ...,... , NOBREAK, NOBREAK, ...,...,... , ...,...,...,... , NOBREAK, NOBREAK, NOBREAK
+        testList1=["NOBREAKORREMOVE", "...,..." , "NOBREAK", 
+                   "NOBREAK", "...,...,..." , "...,...,...,..." , 
+                   "NOBREAK", "NOBREAK", "NOBREAK"]
+        testList2=testList1[1:] 
+        testList3=testList1[1:7]
+        testList4=testList1[0:7] 
     #When adjusting, if we had more than 1 split... I wonder about it... I think it's fine... [symbol index, start end of word, and indexes t oadjust by [add to it]]
     
 
