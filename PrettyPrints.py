@@ -40,6 +40,94 @@ def prettyPrintMatrix(matrix):
     return temp
     
 
+
+def splitStringArrayBalancedRecord(line:str, splitLine=None):
+    """Takes a string of the form [stuff, stuff, ..., stuff]. Splits it into 'stuff' by a given by a splitline, for example ',' """
+    line=line.strip()
+    
+
+    pair=[] #[idxStart, idxEnd, brackets]
+    stack=[]#[index, bracket]
+    for idx in range(len(line)):
+        if line[idx] in ["(", "{", "["]:
+            stack.append([idx, line[idx]])
+        else:
+            if stack:
+                if line[idx] in [")","]","}"]:
+                    if (stack[-1][1]=="(" and line[idx]==")") or (stack[-1][1]=="[" and line[idx]=="]") or (stack[-1][1]=="{" and line[idx]=="}"):
+                        pair.append([stack[-1][0], idx, line[stack[-1][0]:idx+1]])  
+                        stack.pop()
+                    else:
+                        raise SyntaxError("Mismatched Brackets")
+            else:
+                if line[idx] in [")","]","}"]:
+                    raise SyntaxError("Unbalanced Brackets")
+
+    if stack: #Stack should've been consumed entirely
+        raise SyntaxError("Mismatched Brackets or Unbalanced Brackets")
+
+    return pair, line
+
+def splitStringArray(line:str, splitLine=","): 
+    startIdx=0
+    while startIdx<len(line) and line[startIdx] not in ["(", "{", "["]:
+        if line[startIdx] in [")","]","}"]:
+            raise SyntaxError("Unbalanced Brackets")
+        startIdx+=1
+    if startIdx==len(line)-1: #[/{/( exist, but theres no posible match
+        raise SyntaxError("Unbalanced Brackets") 
+    
+    if startIdx==len(line): #This is a line that has info, but not much else, base case 
+        line.split(splitLine)
+        array=[]
+        for tkn in line:
+            if tkn is not splitLine:
+                array.append(tkn.strip()) 
+        return array
+
+
+        #Actually, if this is a recursive statement, split by ",", and strip each entry for whitespace, then return an array with those values? Maybe'? 
+    result=[]
+    pair=[] #[idxStart, idxEnd, brackets]
+    stack=[] 
+    stack.append(line[startIdx]) 
+
+    newStartIdx=False 
+    for idx in range(startIdx+1,len(line)):
+        print("stack: ", stack, "\nLine[idx]=",line[idx])
+        print("idx=",idx)
+        if line[idx] in ["(", "{", "["]:
+            stack.append(line[idx]) 
+            if newStartIdx:
+                newStartIdx=False
+                startIdx=idx 
+                print("found new start Idx = ",idx)
+        else:
+            if stack:
+                if line[idx] in [")","]","}"]:
+                    if (stack[-1]=="(" and line[idx]==")") or (stack[-1]=="[" and line[idx]=="]") or (stack[-1]=="{" and line[idx]=="}"):  
+                        stack.pop() 
+                        if not stack:
+                            print("please split: ",line[startIdx+1:idx].strip())
+                            info=splitStringArray(line[startIdx+1:idx].strip()) 
+                            print("insider info = ", info) #should always be an array
+                            typeBracket=line[startIdx]+line[idx]
+                            info.append(typeBracket)
+                            result.append(info) 
+                            newStartIdx=True 
+                            print("find a new start IDX") 
+                            print("result = ", result[-1])
+                    else: 
+                        raise SyntaxError("1 Mismatched Brackets")
+            else:
+                if line[idx] in [")","]","}"]:
+                    raise SyntaxError("Unbalanced Brackets")
+    return result
+                       
+
+#[[(1,2,3), (4,5), (6,7,8), (9)],[(-1,-2), -3], []]
+
+
 def main(): #Seperate this into a test file
     testMatrixSquare=[ #col vectors are easier to grab
         [1,  
@@ -56,6 +144,26 @@ def main(): #Seperate this into a test file
     print("\n")
     print(prettyPrintMatrix(testMatrixRectangle))
     
+    testLine="[[( 1,2,3), (  4,5  ) , (6,7,8), ( 9)  ],[(-1,-2), -3], []]"
+    testbadLine="[()]{}}" #unbalanced
+    pairs, line=splitStringArrayBalancedRecord(testLine)
+    print("pairs: ", pairs)
+    try: 
+        splitStringArrayBalancedRecord(testbadLine)
+    except SyntaxError as e:
+        print("expected, ", e)
+
+    #splitStringArray, idea is to iterate over a given string in the form of an array to reconstruct that string as an actual array.
+        #[arguments, "bracket type"], example [(1,2,3), 4] becomes [ [1,2,3 "[]"], 4, "[]"]
+        #We should recieve [startIdx, endIdx, insideInfo, TypeBrackets], so we can then go
+            #[splitStringArray(InsideInfo), TypeBrackets]
+    #Need to think more on how to make this recursive... :/
+
+    #{[1,2,3,4]}
+    testLine="{[1,2,3,4]},[1,2],{1},()"
+    result=splitStringArray(testLine)
+    print(result)
+
 
 
 if __name__=="__main__":
