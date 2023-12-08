@@ -1,0 +1,159 @@
+import warnings
+#Properties of trees liked: Stable configuration, clear navigational consequences of insertions.
+
+DEBUG=True
+
+
+class Node():
+    data=None
+    def __init__(self, data):
+        self.data=data 
+    def setData(self, data):
+        self.data=data
+    def getData(self):
+        return self.data
+    pass
+
+
+class binNode(Node):
+    left:Node|None=None
+    right:Node|None=None
+    #Data: operators <,>,=,<=,>=, +, -, /, * are defined on the data object for interactions with ("Number", "int", "float", "double")
+    def __init__(self, data):
+        self.setData(data) 
+
+    def append(self, node:Node):
+        if (node.data<=self.getData()):
+            if self.left==None:
+                self.left=node
+            else:
+                self.left.append(node) 
+        else:
+            if self.right==None:
+                self.right=node
+            else:
+                self.right.append(node)
+        pass
+        
+    #Unncessary but interesting
+    def setData(self, data):
+        super(binNode, self).setData(data)
+    def getData(self):
+        return super(binNode, self).getData()
+ 
+
+class binTree():  
+    standardTypes=(int, float)
+    standardDunder=("__eq__", "__le__","__lt__","__ge__","__gt__") 
+
+    def __new__(cls, rootNode:Node|None=None): 
+        if (rootNode==None):
+            obj=object.__new__(cls)
+            return obj
+        elif (binTree.standardInstanceCheck(rootNode.getData())): #customInstance Chekc probably not needed here.
+            warnings.warn("Warning: rootData is not of type "+binTree.standardTypes+". Default behavior of the tree will attempt to use operator(s) (<, >, =, <=, >=)/Dunder "+binTree.standardDunder+", with default behavior:\nSmaller (append<, <=Node) values appended on the left side of the tree\nLarger (append>Node) values appended on the right side.\nIgnore if you are sure your data will interact with these and your custom data types for node data.")
+        
+        obj=object.__new__(cls)
+        return obj
+    
+    
+    def __init__(self, rootData): 
+        self.rootNode=binNode(rootData)   
+        self.customTypes=[]
+        self.customDunder=[] 
+        self.standardDunder=("__eq__", "__le__","__lt__","__ge__","__gt__")
+        self.standardTypes=(int, float)
+        pass
+
+    def __init__(self):
+        self.rootNode=None
+        self.customTypes=[]
+        self.customDunder=[] 
+        self.standardDunder=("__eq__", "__le__","__lt__","__ge__","__gt__")
+        self.standardTypes=(int, float)
+
+    def append(self, node:Node):  
+        if DEBUG and not self.instanceCheck(node.getData()):
+            warnings.warn("Warning, node is not of type "+set(self.standardTypes, self.customTypes))
+        if (self.rootNode==None):
+            self.rootNode=node
+        else:
+            self.rootNode.append(node)
+
+    def instanceCheck(self, nodeData):
+        return self.customInstanceCheck(nodeData)+self.standardInstanceCheck(nodeData)
+    def customInstanceCheck(self, nodeData):
+        result=tuple(isinstance(nodeData, cls) for cls in self.customTypes)
+        print("custom: ", result)
+        return result
+    def standardInstanceCheck(self, nodeData):
+        result=tuple(isinstance(nodeData, cls) for cls in self.standardTypes)
+        print("standard: ", result)
+        return result
+
+
+    def appendCustomInstanceType(self, cls):
+        if (DEBUG):
+            if (issubclass(cls, Node)):
+                raise ValueError("Cannot append the Node type as a Node data type. Doing so would break sanity logic.")
+            if (self.standardDunder not in dir(cls) or self.customDunder not in dir(cls)):
+                raise SyntaxError("class ", cls," fails to define the following methods:", [cls.dir() not in set(self.customDunder, self.standardDunder)])
+            else:
+               self.customTypes.append(cls)
+        #Insert Check for __sub, mul, truediv, eq, it, gt, le, etc. using the dir function.
+        else:
+            self.customTypes.append(cls)
+
+    def appendCustomDunder(self, mthd):
+        #Normal dunders to check: __eq__, __lt__, __gt__, __le__, __ge__. 
+        #Additional dunders might be useful in more complex trees.
+        if (DEBUG):
+            warnMsg=""
+            result=(mthd in x for x in dir(set(self.customTypes, self.standardTypes)))
+            for i in range(len(result)):
+                if (not result[i]):
+                    warnMsg+="    Method \""+mthd+"\" not found in class "+self.customTypes[i]+"\n"
+            if (warnMsg):
+                warnings.warn("Warning:\n"+warnMsg+"\nNot appending method.")
+                return -1
+            else:        
+               self.customDunder.append(mthd)
+               return 1
+        else:
+            self.customDunder.append(mthd)
+            return 0 
+
+
+
+    def __repr__(self):
+        #Find width of tree, to do so, find teh depth of the tree, then multiply by 3. [maybe make 'max chunks']
+        #We also need to make a legend for the type of data it contains, for this add 1 for each 26 types we have, beyodn the 3 before.
+        #output to a text file perhaps?
+        pass
+
+
+
+
+
+def main(): 
+    tree1=binTree()
+    root=binNode(10)
+    tree1.append(root)
+    
+    #test normal node insertion, up to 7 nodes
+    #test appending new functions to the logic list,
+    #test appending new classes to the logic list (with all dunder req)
+    #test appending custom class (good logic) to the tree
+    #test appending custom class (missing dunder) to the tree
+    #test appending custom dunder to the tree (no class has)
+    #test appending custom dunder to the tree (some class has)
+
+    #Large tree models would benefit from a tuple keeping track of children, if the elements are mutable, and length is not. Since the overhead may be worth the memory saving/loading aspect.
+    
+
+    pass
+
+
+
+if __name__=="__main__":
+    main()

@@ -1,2 +1,0 @@
-Linear Algebra w/ Jeffery Holt:
-	A Theorem is a mathematical statement that has been rigorously proved to be true. Appendix 'Reading and writing proofs' provides an introduction for how to prove theorems.

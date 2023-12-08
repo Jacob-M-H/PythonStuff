@@ -1,119 +1,8 @@
 from decimal import Decimal #avoids float errors, keeps trailing zeros. Way better than floats for my purposes
 
 
-class SigFig():
-    def __init__(self, val:str):
-        self.originalValue=str(val)
-        self.sigString=""
-        self.sigValue=None
-        self.exp=None
-        self.setSig(val)
-
-    def setSig(self, val:str):
-        #remove leading 0's, watch for .
-        #all trailing from . is significant
-        
-        head=0
-        exp=0
-        decimalPlace=None
-        while (head<len(val) and val[head]=="0"):
-            head+=1
-        
-        print(f"val before: {val}")
-        val=val[head:] #slice
-        head=0
-        print(f"val after: {val}")
-
-        #val[head]=Num, ., or length of string
-        if (0==len(val)): 
-            print("basically over")
-
-            #assume 0   
-            self.sigValue=0 
-            self.exp=0
-            self.sigString=f"{self.sigValue} * 10^{self.exp}" 
-            return
-        
-
-        #Get decimal point
-        elif (val[0]!="."): 
-            print("Head is not decimal point")
-            head=0
-            while(head<len(val) and val[head]!="."):
-                head+=1
-            if (head==len(val)):
-                decimalPlace=None 
-            elif val[head]==".":
-                decimalPlace=head
-                head+=1
-
-        else: #val[head]=="."
-            print("Head is decimal point")
-            decimalPlace=head
-            head+=1 
-        
-        print(f"decimalPlace: {decimalPlace}, head: {head}, val: {val}")
-        if decimalPlace is not None:
-            front=val[:decimalPlace] #not including "."
-            back=val[head:] #not including "." 
-            print(f"front: {front}, back: {back}")
-            #count forward to find the first nonzero value
-            headb=0
-            while headb<len(back) and back[headb]=="0":
-                headb+=1
-                
-            #determine sigvalues
-            if len(front)>0:
-                exp+=len(front)-1
-                temp=front[0]+"."+front[1:]+back
-                self.sigValue=float(temp)
-                self.exp=exp
-                self.sigString=f"{self.sigValue} * 10^{self.exp}" 
-                return
-            else:  
-                if len(back)==0:
-                    #we had at least a decimal place, so 0.0
-                    self.sigValue=0.0
-                    self.exp=0
-                    self.sigString=f"{self.sigValue} * 10^{self.exp}" 
-                    return 
-                else:
-                    if headb==len(back):
-                        self.exp=exp+0
-                        self.sigValue=0.0
-                        self.sigString=f"{self.sigValue} * 10^{self.exp}" 
-                    else: #headb must be the position of first nonzero
-                        self.exp=-(headb+1)
-                        self.sigValue=float(back[headb]+"."+back[headb+1:])
-                        self.sigString=f"{self.sigValue} * 10^{self.exp}" 
-                    
-                        #headb
-                    return
-    
-        else:
-             
-            exp+=len(val)-1
-            temp=str(val)
-            self.sigValue=int(val)
-            self.exp=exp
-            self.sigString=f"{self.sigValue} * 10^{self.exp}" 
-            return
-
-    
-    
-    
-    
-        #ASSUMPTIONS, 
-            #10. vs 10,
-                #10. means that 1.0 *10^1, 
-                #10 means 1*10^1 [assumes not known]
+#NOTE FUTURE: 1,42,54, etc should be placed as 1., 42., 54., but 100 should not round to 100., I should assume in the future that if the digit is entered with a nonzero placeholder at the end of the string that it implies exact measurements, and thus a decimal should be included.
  
-
-
-    def __repr__(self):
-        return "CHECK: "+self.sigString+" exp:"+str(self.exp)+", sigValue:"+str(self.sigValue)
-    
-
 class SigFigCHECKER():
     def __init__(self, val:str):
         self.originalValue=str(val)
@@ -206,7 +95,6 @@ class SigFigCHECKER():
     def __repr__(self):
         return "CHECK: "+self.sigString+" exp:"+str(self.exp)+", sigValue:"+str(self.sigValue)
     
-#override
 class SigFig():
     #IMPORTANT: Keep https://stackoverflow.com/questions/15238120/keep-trailing-zeroes-in-python
         #https://copyprogramming.com/howto/python-how-to-keep-trailing-zeros-in-python#keep-trailing-zeroes-in-python
@@ -215,6 +103,8 @@ class SigFig():
         self.sigString=""
         self.sigValue=None
         self.exp=None
+        self.sigFront=""
+        self.sigBack=""
         self.setSig(val)
 
     def setSig(self, val:str):
@@ -229,6 +119,7 @@ class SigFig():
             headf=0
             while(headf<len(val) and val[headf]!="."):
                 headf+=1
+
             if headf<len(val):
                 #decimal found
                 front=val[:headf]
@@ -239,8 +130,10 @@ class SigFig():
                     self.sigValue=Decimal(front[0]+"."+front[1:]+back )
                     self.exp=len(front)-1
                     self.sigString=f"{self.sigValue} * 10^{self.exp}"
+                    self.sigFront=front[0]
+                    self.sigBack=front[1:]+back
                     return 
-                else:
+                else: 
                     headb=0
                     while headb<len(back) and back[headb]=="0":
                         headb+=1
@@ -249,25 +142,36 @@ class SigFig():
                         self.sigValue=Decimal(back[headb]+"."+back[headb+1:])
                         self.exp=-headb-1
                         self.sigString=f"{self.sigValue} * 10^{self.exp}" 
+                        self.sigFront=back[headb]
+                        self.sigBack=back[headb+1:]
                         return
                     else:
                         self.sigValue=Decimal("0"+"."+back)
                         self.exp=0
                         self.sigString=f"{self.sigValue} * 10^{self.exp}"
+                        self.sigFront="0"
+                        self.sigBack=back
                         return 
             else: 
                 #Decimal not found, 14 ->1.4, 1->1.
+#NOTE FUTURE if front[-1]!=0, imply a decimal place.
                 if len(val)>1:
-                    self.sigValue=Decimal(val[0]+"."+val[1:])                
+                    self.sigValue=Decimal(val[0]+"."+val[1:])          
                     self.exp=len(val)-1
+                    self.sigFront=val[0]
+                    self.sigBack=val[1:]      
                 elif len(val)==1:
                     self.sigValue=int(val)
                     self.exp=0
+                    self.sigFront=val
+                    self.sigBack=""      
                 else: 
                     print("default values, empty input. Values chosen with least precision")
                     self.sigValue=int(0)
                     self.exp=0
-
+                    self.sigFront="0"
+                    self.sigBack=""      
+                 
                 self.sigString=f"{self.sigValue} * 10^{self.exp}" 
                 return
             
@@ -277,6 +181,8 @@ class SigFig():
             self.sigValue=int(0)
             self.exp=0
             self.sigString=f"{self.sigValue} * 10^{self.exp}" 
+            self.sigFront="0"
+            self.sigBack=""      
             
             #set as 0, no decimal         
             return 
@@ -289,11 +195,15 @@ class SigFig():
                 #10. means that 1.0 *10^1, 
                 #10 means 1*10^1 [assumes not known]
  
+    def getSigLength(self):
+        return len(self.sigFront)+len(self.sigBack)
 
 
     def __repr__(self):
-        return "CHECK: "+self.sigString+" exp:"+str(self.exp)+", sigValue:"+str(self.sigValue)
+        return "CHECK: "+self.sigString+" exp:"+str(self.exp)+", sigValue:"+str(self.sigValue) +", front: "+str(self.sigFront)+", back: "+str(self.sigBack)
         
+
+
 
 def main():
     #expect 0

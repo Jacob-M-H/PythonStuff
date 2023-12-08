@@ -1,0 +1,4 @@
+__New__ : Called when trying to create an instance of a class. Used explicitly when wanting to control/limit the initialization of a new instance.
+__Init__: Called after __New__. Initalizes Instance AFTER it has been created. 
+#NOTE: Therefore __New__ allows us to avoid allocating memory if parameters are bad. 
+

@@ -1237,3 +1237,221 @@ def main():
 
 if __name__=="__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def createNewLine2(type:int (0|1), skipList:list[str]):
+    print("new line 2 start")
+    newLine=[]
+    nonlocal fairTokens
+    nonlocal problemHighTokenPairs
+    nonlocal problemHighTokens
+    self.sortBy(fairTokens, [[lambda x:x.getSymbolIndex(), False], [lambda x:x.getStart(), False]])
+    self.sortBy(problemHighTokens,[[lambda x:x.getSymbolIndex(), False], [lambda x:x.getStart(), False]])
+    self.sortBy(problemHighTokenPairs, [[lambda x:x.sort(key=lambda y:y.getStart), False], [lambda x:x[0].getSymbolIndex, False]])
+    #sorted by symbolIdx, then start
+    print(fairTokens)
+    print(problemHighTokens)
+    #sort each element by it's start, and sort each entry of the main list by it's symbol Index 
+    print(problemHighTokenPairs)
+    print("Check the above assumptions")
+
+
+
+    if type==0: #accepting fairTokens
+        inspectTokens=[i for i in fairTokens if i not in skipList]
+        print(inspectTokens)
+        print("check the order is preserved")
+        tokenizedString, adjustments = acceptToken2(self.currentPhrase, inspectTokens)
+        #INSERT ADJUST SURVIVORS
+        #INSERT PUSH PHRASE
+    elif type==1: #accept problem tokens
+        inspectTokens=[i for i in problemHighTokens if i not in skipList]
+        inspectPairs=None #INSERT, shorten the list prematurely? Less we have to go looking for perhaps. Make sure it's sorted
+        print(problemHighTokenPairs) #CHECK THE ORDER AND SYMBOL INDEX ARE SENSIBLE
+        print(inspectTokens)
+        print("check the order is preserved")
+        tokenizedString, adjustments = acceptToken2(self.currentPhrase, inspectTokens)
+        #INSERT ADJUST SURVIVORS
+        #Same as above
+        #If unclear prompt user between the options [that do not conflict with a 'skipepd' symbol] Showing those optential options results(? maybe unnecessary likely) <-it is clear we want to track in matrix the results
+        #SANITY CHECK REMAINING PROBLEMS
+        #INSERT PUSH PHRASE
+        pass
+    #MAKE THE MATRICES A UPPER AND LOWER TRIANGULAR BY REPLACING THE CENTER WITH [0,0], in such a way we can track conflicts between tokens, and their resolution.
+        #Maybe we should push a list of the conflicts when resolved (accepted). The more often a condition holds (like a before b, always results in a) we can suggest the logic
+        #Or something?
+        #N gram combine similar terms of a sentences? Then Otherise Or, ?
+
+                
+
+    pass
+
+    def createNewLine(type:int (0|1), skipList:list[str]):
+        nonlocal problemHighTokenPairs #remove conflicts when accepting or handling one over the other.
+        nonlocal problemHighTokens #fast adjust indexes
+        nonlocal fairTokens
+        #ASSERT type==0
+        #Fair tokens, accept based on original line, and not mutated line. Thus it is fine to look at the current for all tokens to be accepted until completed.
+        if type==0:
+            fTIdx=0
+            wordIdx=0
+            newList=[] 
+            acceptedTokens=[]
+
+            while (wordIdx<len(self.currentPhrase)):
+                if (fTIdx<len(fairTokens)):
+                    if fairTokens[fTIdx].getStart()==wordIdx:
+                        if fairTokens[fTIdx].getTokenSymbol() not in skipList:
+                            inspectToken=fairTokens.pop(fTIdx)
+                            wordIdx+=inspectToken.getEnd()-inspectToken.getStart() 
+                            acceptedTokens.append(inspectToken) 
+                            newList.append(inspectToken.getTokenSymbol())
+                        else:
+                            fTIdx+=1
+                            inspectToken=None
+                            wordIdx-=1 #Potentially another token is found in the same spot? (Likely would be a problem token then, but just to be safe)
+                    else:
+                        #Accept the word as it is
+                        newList.append(self.currentPhrase[wordIdx])    
+                else:
+                    #Accept the word as it is
+                    newList.append(self.currentPhrase[wordIdx]) 
+                wordIdx+=1
+
+            #Adjust those that remain by the ones that we accepted
+            acceptToken(0, acceptedTokens) #inspect the token, adjust all those after it's index
+            acceptToken(2, acceptedTokens) #Adjust all the problem tokens as well    
+            self.pushPhrase(newList, fairTokens, problemHighTokenPairs) #NOTE Perhaps make shallow/deep copies? Since editing in the past would edit all the recorded ones. 
+        else:
+            #Virtually the same, accept when accepting, we must remove all conflicts with that inspected token. It's already an adjacency list so not much improvement can be done to the search.
+            print("implement later")
+            pass
+
+    def trimList(tokens:list[str]):
+        print("trimList start: ",tokens)
+        if len(tokens)>1:
+            if tokens[0][0]=="[" and tokens[-1][-1]=="]":
+                tokens[0]=tokens[0][1:]
+                tokens[-1]=tokens[-1][:-1]   
+                return tokens
+            else:  
+                raise SyntaxError("Missing brackets. 1")
+        elif len(tokens)==1:
+            if len(tokens[0])<2: 
+                raise SyntaxError("Missing brackets. 2")
+            elif (tokens[0][0]!="[" or tokens[0][-1]!="]"):
+                raise SyntaxError("Missing brackets. 3")
+            else: 
+                return tokens[0][1:-1]
+        else: 
+            return tokens 
+    
+    def verifyTokens(tokens:str): 
+        badTokens=[] 
+        for token in tokens:
+            if token not in self.symbolDict.keys():
+                badTokens.append(token)
+        if len(badTokens)>0:
+            raise ValueError("unrecognized tokens: ", badTokens) 
+        else:
+            return tokens
+
+    def trimAndVerify(startTokens:str): 
+        nonlocal response
+        tokens=[]
+        print(startTokens)
+        print(startTokens.split(", "))
+        try: #Just a test temporary
+            tokens=trimList(startTokens.split(", ")) 
+        except SyntaxError as e:
+            print("Error:",e)
+            response=None #try again   
+        try:
+            tokens=verifyTokens(tokens)
+        except ValueError as e:
+            print("Error:",e)
+            response=None #try again  
+        return tokens
+
+    while (response==None):
+        response=input() 
+        response=[response.split(" ")[0],response[len(response.split(" ")[0])+1:].strip()] # seperate the first input from the rest of the string  
+        print(response)
+
+        if (response[0]=="help"): #need to test if trailing enter is tracked
+            print("Commands:\n 'yes': accept all fair tokens.\n",
+                    "'no': skip all fair tokens.\n ",
+                    "'yes ['tokens']': yes followed by a list of tokens means accept all of these specific tokens.\n",
+                    "'no ['tokens']': no followed by a list of tokens means reject these specific tokens, accept the rest.\n",
+                    "'tokens?': prints a list of current fair tokens.\n",
+                    "'inspect':returns the information of each fair token, and the original phrase, and the current phrase.\n",
+                    "'exit': Assumes this prompt was incurred in error, will resolve without doing anything.")
+            response=None
+        else:
+            #assert response must be a strength of len 0 or more 
+            if response[0]=='no' :
+                if response[1]!='':
+                    print("recieved no ...")
+                    print("response[1] : ",type(response[1]), response[1]) 
+                    tokens=trimAndVerify(response[1]) #Notice the response is set to None non-locally inside these functions
+                    if response==None:
+                        print("try again")
+                        continue #something must've failed, try again
+                    print("accept tokens into new line - assuming fair, and skipping ", tokens)
+
+                    print("current line : ", self.currentPhrase)
+                    print("current fair tokens : ",fairTokens)
+                    print("current problem tokens : ", problemHighTokens) 
+                    createNewLine(0, tokens) 
+                    print("new line : ", self.currentPhrase)
+                    print("new fair tokens : ",fairTokens)
+                    print("new problem tokens : ", problemHighTokens) #NOTE, should likely sort problemHighTokens by start.
+                    #do with tokens as desired
+                        #acceptTokens(type:int (0:fair|1:problem), skipList:list[FoundPotentialToken]) 
+                        #accept tokens (and record outcome) 
+                            #if fair, fastadjust all other tokens (fair/problem)
+                            #If problem, fast adjust all fairs (as appliable), and remove all conflicting tokens wit hthat token
+                                #for problem, show all competing problems, and the current phrse and original phrase (current being the new statement with problems acting on it, or fairs already accepted on it)
+                    #accept tokens should be run until either tokens are exhausted, or a command is given to break from handling.
+                    
+                    #9/13/23: confirm the changes in problemHigh and fairToken, 
+                        #then push phrase, and prompt for whther to accept or reject problems case by case (in each case, acceptting or rejecting, or reject both, in either case, update the problem space (through a copy list), and adjust the remaining indexes each time)
+                        #finally, push that phrase, repeat fair and problem as many times as the user likes in the future
+                    #After that, we need to work more on the commands (simply finish what commands were already outlined).
+                    #Then, we need to make a conflict reference [fast reference for problem tokens to converted to fair tokens (as applicable)], and a way to split the string into indivdual characters, but have a dictionary of assumptions (like all character groups, or a period following a number should stay together, etc).
+                    #Only then, can we start to think about syntax graphs [we can make a seperate file for tests in creating those trees from idealized tokenized strings]
+                
+                else:
+                    print("recieved no")
+
+
+
+            elif response[0]=='yes':
+                pass
+            elif response[0]=='exit':
+                print("exited")
+                pass
+            elif response[0]=='tokens?':
+                pass
+            elif response[0]=='inspect':
+                pass    
+            else:
+                print("unrecognized input")
+                response=None
+
+
