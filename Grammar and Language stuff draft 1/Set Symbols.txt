@@ -1,0 +1,24 @@
+SymbolSet #COMMENT assignment for the symbols allowable in _ or *_
+{} #COMMENT Set
+| #COMMENT Intersect
+U #COMMENT Union
+\ #COMMENT Set Difference
+\delta #COMMENT Symmetric difference
+X #COMMENT Cartesian product
+= #COMMENT Assignment
+\not #COMMENT Not | Not in set
+\in #COMMENT item in set
+_ #COMMENT Singular Symbol
+*_ #COMMENT Multi length symbol
+*_ _  #COMMENT Multi length symbol with min assigned.
+*_ , _ #COMMENT Multi length symbol with min, max assigned
+*_ , , _ #COMMENT Multi length symbol with min, max, and step assigned.
+*_{} #COMMENT Suffix/Prefix can be constructed with any elements in a given set.
+*_ , _{}
+*_ , , _{}
+{}*_
+{}*_ , _
+{}*_ , , _
+_{}
+<=expr: #COMMENT Expr are actions, by placing expr in this order, default actions can be collated in one spot for editing. #COMMENT without actions then we just do the recursion basically. | NUMBER | set | x=term '+' y=term { Add(x,y) }
+>= #COMMENT CONVENTION, terminals should be written on the left, while operates expecting a secondary argument (such as { '}', or x + '5', these secondary 'arg' should be on the right, but terminals should be on the left, so x+5 should have X 5^+, as the plus is either expecting or should apply to above?)

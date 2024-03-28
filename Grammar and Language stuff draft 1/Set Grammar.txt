@@ -1,0 +1,70 @@
+SymbolSet:
+	| Set
+	| CODE
+
+statements:statement+
+
+statement: simple_stmts
+
+statement_newline:
+	| simple_stmts
+	| NEWLINE
+	| ENDMARKER
+
+simple_stmts:
+	| simple_stmt !';' NEWLINE
+	| ';'.simple_stmt + [';']  
+
+simple_stmt:
+	| assignment 
+	| expr
+
+assignment:
+	| NAME '=' expr
+	| NAME '>=' expr
+	| NAME '<=' expr
+	| NAME '>' expr
+	| NAME '<' expr
+	| NAME 
+
+expr:
+	| set
+	| atom
+
+set:
+	| { + set + setOperation + set + }
+	| set + setOperation + set
+	| {[setArg]}  
+
+setOpeartion:
+	| 'U'	
+	| '\delta' #sym diff
+	| '\' #set dif
+	| '|'
+	| '\X' #cartesian product 
+
+setArg:	
+	| wildcards [, setArg]
+	| wildcard [, setArg]
+	| term [, setArg]
+	| set [, setArg]
+
+wildcard:
+	| '_' + [set]
+	
+wildcards:
+	| '*_' + NUMBER + , NUMBER + , NUMBER + '_' + [set]
+	| '*_' + NUMBER + , NUMBER + '_' + [set]
+	| '*_' + NUMBER +'_' + [set] 
+	| '*_' + [set]
+
+atom:
+	| 'True'
+	| 'False'
+	| 'None'
+	| term
+
+term: 
+	| NAME
+	| NUMBER
+	| STRING
