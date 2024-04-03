@@ -69,99 +69,214 @@ This will be an ugly, ugly algorithm. Finding a root may be quick, if we simply 
 [which may not be true 'roots' of a tree, but the most appropriate place to enter the grammar graph]
     A first pass algorithm will be attempted, and it will have both recursive and linear operations, and will attempt to resolve each case in turn, but each recursion should knock out a few 
         rule obj to test o rthrow a cyclic error/warning. 
+
+    Due to performance considerations, there will not be multiple initalization options. While C++ and Java allow method overloading, Pythons method overloading would be allowable with register/singledispatchmethod but it seems it'd take a large performance hit.
+        It should be fine...
 """
+
+
 class directedGraphMatrix:
     """X is the number of columns, Y is number of rows"""
     """X axis -> Y Axis Node."""
     strictMode=True #A debug tool to try. We'll see where it ends up later. Wrote a whole ton of code for safety and tooling. Try to break it later with unit tests.
-    def __init__(self):
-        self.x=0
-        self.y=0
-        self.Matrix=None
-        self.legend=None
-    def __init__(self,x:int, y:int, encoding=[]):
-        self.x=self.setX(x)
-        self.y=self.setX(y)
-        if self.getX()<0 or self.getY()<0:
-            self.Matrix=None
-        else:
-            self.Matrix=self.createMatrix(encoding)
-
-    def __init__(self,x:int, y:int, encoding=[]):
-        self.x=self.setX(x)
-        self.y=self.setX(y)
-        if self.getX()<0 or self.getY()<0:
-            self.Matrix=None
-        else:
-            self.Matrix=self.createMatrix(encoding)
-
-    #Additional Init's that include combinations between legends and x/y's. Also a square matrix init.
     
+    def __init__(self,x:int, y:int, encoding=None)->None:
+        print("\n\n\n")
+        print("init")
+        x=self._setX(x)
+        y=self._setY(y) 
+        self.legendX=None
+        self.legendY=None
+        self.Matrix=self.createMatrix(encoding)
+        if x<0 or y<0:
+            if directedGraphMatrix.strictMode:
+                raise ValueError("x or y are negative. Expect x>=0 and y>=0") 
+        return None
+        
 
-
-    def getMatrix(self)->list|None:
-        return self.Matrix
-    
-    def setX(self, x)->int:
+    def _setX(self, x)->int:
+        print("_setX")
         if x<0:
             self.x=0
             return -1
         else:
             self.x=x
-    def setY(self, y)->int:
+            return 1
+    def _setY(self, y)->int:
+        print("_setY")
         if y<0:
             self.y=0
             return -1
         else:
             self.y=y
+            return 1
     def getX(self)->int:
+        print("getX")
         return self.x
     def getY(self)->int:
+        print("getY")
         return self.y
 
+    def createMatrix(self, encoding=None): 
+        print("createMatrix") 
+        temp=[] 
+        columnNumber=self.getX()
+        rowNumber=self.getY()
+        for column in range(columnNumber):#How many columns 
+            temp.append([encoding for row in range(rowNumber)] )#How many rows
+        return temp
+
+    def getMatrix(self)->list|None:
+        print("getMatrix") 
+        return self.Matrix
+
     def isPosition(self, row, column):
+        print("isPosition") 
         if self.Matrix!=None and row<self.getY() and column<self.getX():
             return True
         else:
             return False
-
-    def createMatrix(self, encoding): 
-        temp=[] 
-        for i in range(self.getX()):# How many columns
-            col=[encoding for i in range(self.getY())] #How many rows
-
-    def getPosition(self, row, column)->tuple: #NOTE: Part of an experiment to make sure tuples act as I expect them to in python
-        #TEST: a copy of good return[1] is mutable, but return[1] is not.
-        """-1 is bad inputs."""
-        if self.isPosition(self, row, column):
-            return (0,self.getMatrix()[column][row])
-        else:
-            return (-1,[])
-    
     def setPosition(self, row, column, encoding)->int:
         """-1 is bad inputs."""
-        if self.isPosition(self, row, column):
+        print("setPosition") 
+        if self.isPosition(row, column):
             self.getMatrix()[column][row]=encoding
             return 0
         else:
             return -1
+    def getPosition(self, row, column)->tuple: #NOTE: Part of an experiment to make sure tuples act as I expect them to in python
+        #TEST: a copy of good return[1] is mutable, but return[1] is not.
+        """-1 is bad inputs."""
+        print("getPosition") 
+        if self.isPosition(row, column):
+            return (0,self.getMatrix()[column][row])
+        else:
+            return (-1,[])
+
     def getColumn(self, column)->list|int:
+        print("getColumn") 
         if self.isPosition(0, column):
             return self.getMatrix()[column]
         else:
             return -1 #Could perhaps give empty list, but this is more explicit.
     def getRow(self, row)->list|int:
         """Slightly more expensive than getColumn"""
+        print("getRow") 
         if self.isPosition(row, 0):
             return [self.getMatrix()[column][row] for column in range(self.getX())]
         else:
             return -1
 
+    def _validateColumn(self, column, index=0)->int:
+        print("_validateColumn") 
+        if index<0 or index>self.getY():
+            if directedGraphMatrix.strictMode:
+                raise IndexError("Row replacement is outside of range!")
+            return -1
+        if self.getMatrix()==None:
+            if directedGraphMatrix.strictMode:
+                raise ValueError("No Matrix found")
+            return -1
+        if len(column)!=self.getX():
+            if directedGraphMatrix.strictMode:
+                raise ValueError("Row has a different number of columns than the matrix!")
+            return -1
+        return 1
+    def _validateRow(self, row, index=0):
+        print("_validateRow") 
+        if index<0 or index>self.getX():
+            if directedGraphMatrix.strictMode:
+                raise IndexError("Column replacement is outside of range!")
+            return -1  
+        if self.getMatrix()==None:
+            if directedGraphMatrix.strictMode:
+                raise ValueError("No Matrix found")
+            return -1
+        if len(row)!=self.getY():
+            if directedGraphMatrix.strictMode:
+                raise ValueError("Column has a different number of rows than the matrix!")
+            return -1 
+    def setColumn(self, column, index)->int: 
+        print("setColumn") 
+        try:
+            result=self._validateColumn(column, index)
+            if result<0:
+                return result
+        except IndexError or ValueError as e:
+            raise e
+        self.getMatrix()[index]=column
+        return 1
+    def setRow(self, row, index): 
+        print("setRow") 
+        try:
+            result=self._validateColumn(row, index)
+            if result<0:
+                return result
+        except IndexError or ValueError as e:
+            raise e
+        rowNum=0
+        for col in self.getMatrix():
+            col[index]=row[rowNum]
+            rowNum+=1
+        return 1
+    def addColumn(self, column, index=None)->int:
+        print("addColumn") 
+        if index==None:
+            index=self.getX()
+        try:
+            result=self._validateColumn(column, index)
+            if result<0:
+                return result
+        except IndexError or ValueError as e:
+            raise e
+        self.getMatrix().insert(index, column) #might need append if it doesn't like the exact end.
+        self._setX(self.getX()+1)
+        return 1
+    def addRow(self, row, index=None)->int:
+        print("addRow") 
+        if index==None:
+            index=self.getY()
+        try:
+            result=self._validateColumn(row, index)
+            if result<0:
+                return result
+        except IndexError or ValueError as e:
+            raise e
+        rowNum=0
+        for col in self.getMatrix():
+            col.insert(index, row[rowNum])
+            rowNum+=1
+        self._setY(self.getY()+1)
+        return 1
+    def removeColumn(self, index:int)->int:
+        print("removeColumn") 
+        if index<self.getX() and index>0:
+            self.getMatrix().pop(index)
+        return 1
+    def removeRow(self, index:int)->int:
+        print("removeRow") 
+        if index<self.getY() and index>0:
+            for col in self.getMatrix(): 
+                col.pop(index)
+        return 1 
 
-
-    def _validateLegend(self, keyValues:dict, getRC:getX|getY)->bool:
+    
+    def _validateLegend(self, keyValues:dict, getRC="X" or "Y")->bool: #This one will need unit tests for sure
+        print("_validateLegend") 
         offendingValues=[]
-        easyCheck=[0]*self.getRC()
+        expectedValueAmount=0
+        errorString=""
+        if getRC=="X": 
+            expectedValueAmount=self.getX()
+        elif getRC=="Y":
+            expectedValueAmount=self.getY()
+        else:
+            if directedGraphMatrix.strictMode:
+                errorString="getRC expected to be either \"X\" or \"Y\", not " + str(getRC)
+                raise ValueError(errorString)
+            return False
+
+        easyCheck=[0]*expectedValueAmount
  
         for value in keyValues.values():
             if type(value)!="int":
@@ -196,35 +311,52 @@ class directedGraphMatrix:
                     print("Some Indicies may not be reachable using legend. Indicies unreachable using legendX: "+str(badIdx))
                     #Return false not enfored here, as additional space may have been allocated for later dictionary use.
         return True
-    
-
 
     def _setLegendX(self, keyValues)->None:
+        print("_setLegendX") 
         self.legendX=keyValues
     def _setLegendY(self, keyValues)->None:
+        print("_setLegendY") 
         self.legendY=keyValues
     def getLegendX(self)->None|dict:
+        print("getLegendX") 
         return self.legendX
     def getLegendY(self)->None|dict:
+        print("getLegendY") 
         return self.legendY
-    
+
     def LegendX(self, key):
+        print("LegendX") 
         if self.getLegendX()!=None:
             try:
                 return self.legendX[key]
             except KeyError as e:
                 raise e        
     def LegendY(self, key):
+        print("LegendY") 
         if self.getLegendY()!=None:
             try:
                 return self.legendY[key]
             except KeyError as e:
                 raise e
-   
-    def setLegend(self, keyValues:dict, getRC:getX|getY, setLegend="X"|"Y")->bool:
-        """Key allows for fast mapping of a row or column to a particular pair of strings or objects"""
 
-        if len(keyValues)-1>self.getRC(): #There might be some edge cases in which this is fine. For example EBNF maybe we want synonyms?
+    def setLegend(self, keyValues:dict, setLegend="X" or "Y")->bool:
+        """Key allows for fast mapping of a row or column to a particular pair of strings or objects"""
+        print("setLegend") 
+        dimLen=0
+        errorString=""
+        if setLegend=="X":
+            dimLen=self.getX()
+        elif setLegend=="Y":
+            dimLen=self.getY()
+        else:
+            if directedGraphMatrix.strictMode:
+                errorString="Expected setLegend \"X\" or \"Y\", received "+str(setLegend)
+                raise ValueError(errorString)
+            return False
+        
+        
+        if len(keyValues)-1>dimLen: #There might be some edge cases in which this is fine. For example EBNF maybe we want synonyms?
             if directedGraphMatrix.strictMode:
                 raise IndexError("Too many Keys for the values in the Legend")
             else:
@@ -236,7 +368,7 @@ class directedGraphMatrix:
                     print(warnHead+"rows"+warnBack)
                 
         try:
-            self._validateLegend(keyValues, self.getRC)
+            self._validateLegend(keyValues, setLegend)
             if setLegend=="X":
                 self._setLegendX(keyValues)
             if setLegend=="Y":
@@ -253,9 +385,195 @@ class directedGraphMatrix:
             return False
         
         return True
+
+    def getLegends(self)->tuple:
+        print("getLegends")
+        return (self.getLegendX(), self.getLegendY())
+
+    #TODO: insert |, +, and - to create ASCII table borders, optionally.
+    def __str__(self, minPad:int=0, optionalJustify:int=1, optionalCellNA:str="", optionalCellDefault=None, optionalDefaultXLabels:bool=False, optionalDefaultYLabels:bool=False)->str:
+        """Justify 0: no justificaiton\nJustify 1: Left just\nJustify 2: Right Just\nJustify 3: center. Other integers treated as 0."""
+        """X/Y label defaults "", on True labels with integers."""
+
+        print("__str__")
+        rowNum=self.getY()
+        colNum=self.getX()
+        #TODO, preallocate the sizes required via row num and col num
+        resultStrings=[] #cells 
+        formatLegendX=[0]*colNum #keys
+        formatLegendY=[0]*rowNum #keys
+        finalResultString=""
+        padding=max(minPad,len(optionalCellNA)) #TODO: allow str to have optional integer argumetn for different types of padding or no padding.
+        legendX=self.getLegendX()
+        legendY=self.getLegendY() 
+
+        def figurePadding(strValue:str, padding:int):
+            strLen=len(strValue)
+            if padding<strLen: 
+                return strLen
+            return padding 
+        def padString(pad:int, string:str, opt:int=0):
+            if opt==0:
+                return string
+            if opt==1:
+                return string.ljust(pad, " ")
+            if opt==2:
+                return string.rjust(pad, " ")
+            if opt==3:
+                return string.center(pad, " ")
+            return string
+            
+        if legendX!=None:
+            for key in legendX.keys(): 
+                if formatLegendX[legendX[key]]==0:
+                    keyString=str(key)
+                    formatLegendX[legendX[key]]=keyString
+                    padding=figurePadding(keyString, padding)
+                else:
+                    formatLegendX[legendX[key]]+="/"+str(key)    
+                    keyString=formatLegendX[legendX[key]]
+                    padding=figurePadding(keyString,padding)
+        else:
+            if optionalDefaultXLabels:
+                #Integer implementaiton
+                for i in range(colNum):
+                    formatLegendX[i]=str(i)
+                padding=figurePadding(str(colNum), padding)
+        if legendY!=None:
+            for key in legendY.keys(): 
+                if formatLegendY[legendY[key]]==0:
+                    keyString=str(key)
+                    formatLegendY[legendY[key]]=keyString
+                    padding=figurePadding(keyString, padding)
+                else:
+                    formatLegendY[legendY[key]]+="/"+str(key)  
+                    keyString=formatLegendY[legendY[key]]
+                    padding=figurePadding(keyString,padding)      
+        else: 
+            if optionalDefaultYLabels:
+                #Integer implementaiton
+                for i in range(rowNum):
+                    formatLegendY[i]=str(i)
+                padding=figurePadding(str(rowNum), padding)
+ 
+
+        for row in range(rowNum):     
+            for col in range(colNum):
+                strValue=str(self.getPosition(row, col)[1])
+                padding=figurePadding(strValue, padding)
+                resultStrings.append(strValue)
+
+        #Prefix with whitespace with padding to account for Y legend
+        finalResultString+=padString(padding, "", 1)
+        for key in formatLegendX:
+            if key==0:  
+                finalResultString+=padString(padding, "", 1) 
+            else:
+                finalResultString+=padString(padding, key, optionalJustify)  
+        
+        if len(finalResultString)>0:
+            finalResultString+="\n"
+
+        head=0 
+        rowHead=1
+        print("result string len: ", len(resultStrings))
+        print("X/Y len: ", colNum, "/",rowNum)
+        print("formatLegend X/Y: \n",formatLegendX,"\n",formatLegendY)
+        print("padding: ", padding)
+        for key in formatLegendY:
+            #append key, or whitespace
+            if key==0:
+                finalResultString+=padString(padding, "", 1) 
+            else:
+                finalResultString+=padString(padding, key, optionalJustify) 
+            rowLimit=colNum*rowHead 
+            print("head: ", head,", rowLimit: ",rowLimit)
+            for head in range(head, rowLimit): 
+                if resultStrings[head]==str(optionalCellDefault):
+                    finalResultString+=padString(padding, optionalCellNA, optionalJustify)
+                else:
+                    finalResultString+=padString(padding, resultStrings[head], optionalJustify)  
+            head=rowLimit
+            rowHead+=1 
+            finalResultString+="\n" 
+ 
+        return finalResultString
+  
+    def prettyPrint(self, minPad:int=0, optionalJustify:int=1, optionalCellNA:str="N/A", optionalCellDefault=None, optionalDefaultXLabels:bool=True, optionalDefaultYLabels:bool=True ,replaceGenericX:bool=True, replaceGenericY:bool=True)->str:
+        #During formatX, prepend with "|"
+        #after loop suffix "|"
+            #as usual suffix "\n"
+        #create a str line '-', we'll replace the [1] with a +.
+            #suffix with "\n"
+        #for formatY 
+            #key +="|"
+            #result String suffix with "|"
+        #pad then suffix!
+        
+        #When combining each
+        #formatX + flatLine w/ [1]="+", + formatY Row with Cell Row + flatLine until completed.
+
+        #Note that a boolean was created so that if there exists a [0] still, it should be replaced with it's integer position.
+        pass
     
 
+def nonZeroDimensions(matrix:directedGraphMatrix, testIteration=0): 
+    print("Matrice test, nonZeroDimensions: "+str(testIteration)) 
+    if matrix.getX()<0:
+        raise ValueError("Negative X dimensions!")
+    if matrix.getY()<0:
+        raise ValueError("Negative Y dimensions!")
+    
+def notNoneMatrix(matrix:directedGraphMatrix, testIteration=0):
+    print("Matrice test, nonZeroDimensions: "+str(testIteration))
+    if matrix.getMatrix()==None:
+        raise ValueError("Expected Matrix not None")
+    print(matrix.getMatrix())
+
+def printMatrix(matrix:directedGraphMatrix, testIteration=0):
+    print("Matrice test, printMatrix: "+str(testIteration))
+    try:
+        resultString=matrix.__str__(0, 1, "N/A", None, True, True)
+        print(resultString, "\n Len(resultString): ",len(resultString))
+    except:
+        raise ValueError("Something went wrong with the __Str__ function")
+
+
+def testSweep(matrixList, func):
+    testIteration=0
+    for matrix in matrixList:
+        try: 
+            func(matrix,testIteration)
+        except ValueError or IndexError as e:
+            print(e)  
+        testIteration+=1
+        input("Continue?")
+    
+
+
 def main(): 
+    directedGraphMatrix.strictMode=False
+    #TEST: Initializations 
+    emptyMatrix=directedGraphMatrix(0,0) 
+    squareMatrixA=directedGraphMatrix(5,5)
+    squareMatrixB=directedGraphMatrix(10,10) #TEST negatives, 0, non integers, and non square matrices. Be sure to try alterations of these like -1,5
+    longRectangleMatrixC=directedGraphMatrix(10,5)
+    tallRectangleMatrixD=directedGraphMatrix(5,10)
+
+    negativeMatrixE=directedGraphMatrix(-1,-9) 
+    negativeRowMatrixF=directedGraphMatrix(10,-5)
+    negativeColMatrixF=directedGraphMatrix(-5,10)
+    testMatrices=[emptyMatrix, squareMatrixA, squareMatrixB, longRectangleMatrixC, tallRectangleMatrixD, negativeMatrixE, negativeRowMatrixF, negativeColMatrixF]
+    #legendA={"Set":0, "Group":1, "Ring":2, "Monoid":3, "Magma":4, "Semi-Group":5}
+    #legendB={"Numeric Algebra":0, "Variable Algebra":1, "Trig":2, "Calc":3, "Real Algebra":4, "Abstract Algebra":5, "Elliptical Curve Crypt":6, "Probability Theory":7, "Statistics":8,"Linear Algebra":9}
+    #legendC={"A":1,"B":2,"C":3,"D":4, "E":5} #TEST, negatives, positives beyond index of the x/y, 0s, and multiple equal values, such as "E":5, "F":5.
+    #testSweep(testMatrices, nonZeroDimensions)
+    
+    #testSweep(testMatrices, notNoneMatrix)
+    
+    testSweep(testMatrices, printMatrix)
+ 
+
     pass
 
 
