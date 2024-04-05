@@ -269,14 +269,16 @@ class directedGraphMatrix:
         print("removeColumn") 
         if index<self.getX() and index>0:
             self.getMatrix().pop(index)
+            self._setX(self.getX()-1)
             return 1
         else:
             return -1
     def removeRow(self, index:int)->int:
         print("removeRow") 
-        if index<self.getY() and index>0:
+        if index<self.getY() and index>0: 
             for col in self.getMatrix(): 
                 col.pop(index)
+            self._setY(self.getY()-1)
             return 1 
         else:
             return -1
@@ -590,27 +592,39 @@ def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], ad
     beforeChanges=matrix.__str__(0, 1, "N/A", None, True, True)
 
     if dim: #add/remove column
-        
-        #0,0 #Replace row should just use addColumn/remove column. 
-        print("add Column, ", matrix.addColumn(add,addIdx)) #expect failure  
-        print("set Column, ", matrix.setColumn(replacement,setIdx)) #expect failure 
-        #print("rem Column, ", matrix.removeColumn(remove)) #expect failure 
+        print("add Column, ", matrix.addColumn(add,addIdx))  
+        print("set Column, ", matrix.setColumn(replacement,setIdx)) 
     
 
     else: #add/remove row
-        print("add Row ", matrix.addRow(add,addIdx)) #expect failure
-        print("set Row ", matrix.setRow(replacement,setIdx)) #expect failure
-        #print("rem Row ", matrix.removeRow(remove))  #expect failure 
+        print("add Row ", matrix.addRow(add,addIdx))
+        print("set Row ", matrix.setRow(replacement,setIdx)) 
 
     afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
+     
+    if dim:
+        print("rem Column, ", matrix.removeColumn(remove))
+    else:
+        print("rem Row ", matrix.removeRow(remove))
+
+
+    afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
+
     input("See matrix "+str(testIteration)+"?")
-    print("Before:\n", beforeChanges)
-    print("After:\n",  afterChanges)
+    print("Before add/set:\n", beforeChanges)
+    print("After add/set:\n",  afterChanges) 
+    print("After remove:\n", afterRemove)
+
+
+
     input("continue?")
 
     pass
 
-def testSweep(matrixList, func):
+
+def testSweep(matrixList, func, useStrictMode:bool=False):
+    oldMode=directedGraphMatrix.strictMode
+    directedGraphMatrix.strictMode=useStrictMode
     testIteration=0
     for matrix in matrixList:
         try: 
@@ -618,7 +632,7 @@ def testSweep(matrixList, func):
         except ValueError or IndexError as e:
             print(e)  
         testIteration+=1 
-    
+    directedGraphMatrix.strictMode=oldMode
 
 
 def main(): 
