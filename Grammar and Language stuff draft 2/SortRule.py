@@ -40,6 +40,14 @@ class ruleObj():
         return self.name+":\n"+"Rank: "+self.rank+"\nCases:\n"+cases 
    
 ruleCollection={}
+
+
+"""Note on ENBF, I haven't figured out how the theory jives with optional and more arguments. I'm hoping the matrix stuff will lead to some revelation. Additionally it will be likely that earlier 
+        []+ or {}+ are more important than later ones, as if they fail then it should be quickly be able to fail the next ones (ideally) or get a longer string.
+            May enforce EBNF with [] and {} at the end of each case. I'll have to see if there exists a reason why that wouldn't work, or if other forms can be expressed as such.
+                It'd be awesome if my college gave a class on this before I graduated, but I'm pretty sure its master level. 
+"""
+
 """We want to ensure that the grammar rules are sorted from most abstract to least abstract. [or reversed if the object creation and datastructures prefer]"""
 """ 
 Problem definition:
@@ -141,7 +149,7 @@ class directedGraphMatrix:
         print("setPosition") 
         if self.isPosition(row, column):
             self.getMatrix()[column][row]=encoding
-            return 0
+            return 1
         else:
             return -1
     def getPosition(self, row, column)->tuple: #NOTE: Part of an experiment to make sure tuples act as I expect them to in python
@@ -149,41 +157,28 @@ class directedGraphMatrix:
         """-1 is bad inputs."""
         print("getPosition") 
         if self.isPosition(row, column):
-            return (0,self.getMatrix()[column][row])
+            return (1,self.getMatrix()[column][row])
         else:
-            return (-1,[])
-
-    def getColumn(self, column)->list|int:
+            return (-1,None)
+    #TODO: let the index for the Dim functions optionally be a string. If a string send it into the legend to get the index.
+    #TODO: if addrow/column is empty list, input a 0 along that row, or optional N/A arugment. At this point we should have a legend that keeps track of a N/A for a given column
+        #Along with optional enforcements of type, like a function isType() that a user provides. So inputs must pass that internal type legend.
+    def getColumn(self, colIdx:int)->list|int:
         print("getColumn") 
-        if self.isPosition(0, column):
-            return self.getMatrix()[column]
+        if colIdx>-1 and colIdx<self.getX():
+            return self.getMatrix()[colIdx]
         else:
             return -1 #Could perhaps give empty list, but this is more explicit.
-    def getRow(self, row)->list|int:
+    def getRow(self, rowIdx:int)->list|int:
         """Slightly more expensive than getColumn"""
         print("getRow") 
-        if self.isPosition(row, 0):
-            return [self.getMatrix()[column][row] for column in range(self.getX())]
+        if rowIdx>-1 and rowIdx<self.getY():
+            return [self.getMatrix()[column][rowIdx] for column in range(self.getX())]
         else:
             return -1
 
-    def _validateColumn(self, column, index=0)->int:
+    def _validateColumn(self, column:list, index:int=0)->int:
         print("_validateColumn") 
-        if index<0 or index>self.getY():
-            if directedGraphMatrix.strictMode:
-                raise IndexError("Row replacement is outside of range!")
-            return -1
-        if self.getMatrix()==None:
-            if directedGraphMatrix.strictMode:
-                raise ValueError("No Matrix found")
-            return -1
-        if len(column)!=self.getX():
-            if directedGraphMatrix.strictMode:
-                raise ValueError("Row has a different number of columns than the matrix!")
-            return -1
-        return 1
-    def _validateRow(self, row, index=0):
-        print("_validateRow") 
         if index<0 or index>self.getX():
             if directedGraphMatrix.strictMode:
                 raise IndexError("Column replacement is outside of range!")
@@ -192,28 +187,50 @@ class directedGraphMatrix:
             if directedGraphMatrix.strictMode:
                 raise ValueError("No Matrix found")
             return -1
-        if len(row)!=self.getY():
+        if len(column)!=self.getY():
             if directedGraphMatrix.strictMode:
                 raise ValueError("Column has a different number of rows than the matrix!")
-            return -1 
-    def setColumn(self, column, index)->int: 
+            return -1  
+        return 1
+    def _validateRow(self, row:list, index:int=0):
+        print("_validateRow")   
+        if index<0 or index>self.getY():
+            if directedGraphMatrix.strictMode:
+                raise IndexError("Row replacement is outside of range!")
+            return -1
+        if self.getMatrix()==None:
+            if directedGraphMatrix.strictMode:
+                raise ValueError("No Matrix found")
+            return -1
+        if len(row)!=self.getX():
+            if directedGraphMatrix.strictMode:
+                raise ValueError("Row has a different number of columns than the matrix!")
+            return -1
+        return 1
+    def setColumn(self, column:list, index:int)->int: 
         print("setColumn") 
         try:
             result=self._validateColumn(column, index)
             if result<0:
                 return result
         except IndexError or ValueError as e:
-            raise e
+            if directedGraphMatrix.strictMode: #Likely redundant.
+                raise e
+            else:
+                return -2
         self.getMatrix()[index]=column
         return 1
-    def setRow(self, row, index): 
+    def setRow(self, row:list, index:int): 
         print("setRow") 
         try:
             result=self._validateColumn(row, index)
             if result<0:
                 return result
         except IndexError or ValueError as e:
-            raise e
+            if directedGraphMatrix.strictMode:
+                raise e
+            else:
+                return -1 
         rowNum=0
         for col in self.getMatrix():
             col[index]=row[rowNum]
@@ -224,7 +241,7 @@ class directedGraphMatrix:
         if index==None:
             index=self.getX()
         try:
-            result=self._validateColumn(column, index)
+            result=self._validateColumn(column, index) #Validate column must not rely on getPositoin/isPosition to check column. Must cehck getY, and then if the index is within the getX, insert it, otherwise append it.
             if result<0:
                 return result
         except IndexError or ValueError as e:
@@ -252,13 +269,17 @@ class directedGraphMatrix:
         print("removeColumn") 
         if index<self.getX() and index>0:
             self.getMatrix().pop(index)
-        return 1
+            return 1
+        else:
+            return -1
     def removeRow(self, index:int)->int:
         print("removeRow") 
         if index<self.getY() and index>0:
             for col in self.getMatrix(): 
                 col.pop(index)
-        return 1 
+            return 1 
+        else:
+            return -1
 
     
     def _validateLegend(self, keyValues:dict, getRC="X" or "Y")->bool: #This one will need unit tests for sure
@@ -457,8 +478,10 @@ class directedGraphMatrix:
                 padding=figurePadding(str(rowNum), padding)
  
 
+        print("Matrix=\n", self.getMatrix())
         for row in range(rowNum):     
             for col in range(colNum):
+                print("Find row/col: ", row,"/",col, " in range rowNum/colNum: ", rowNum,"/",colNum)
                 strValue=str(self.getPosition(row, col)[1])
                 padding=figurePadding(strValue, padding)
                 resultStrings.append(strValue)
@@ -476,10 +499,10 @@ class directedGraphMatrix:
 
         head=0 
         rowHead=1
-        print("result string len: ", len(resultStrings))
-        print("X/Y len: ", colNum, "/",rowNum)
-        print("formatLegend X/Y: \n",formatLegendX,"\n",formatLegendY)
-        print("padding: ", padding)
+        #print("result string len: ", len(resultStrings)) #empty if no values. 
+        #print("X/Y len: ", colNum, "/",rowNum)
+        #print("formatLegend X/Y: \n",formatLegendX,"\n",formatLegendY)
+        #print("padding: ", padding)
         for key in formatLegendY:
             #append key, or whitespace
             if key==0:
@@ -515,7 +538,16 @@ class directedGraphMatrix:
 
         #Note that a boolean was created so that if there exists a [0] still, it should be replaced with it's integer position.
         pass
-    
+    def isMatrixEmpty(self, identity=None)->bool:
+        #return True if empty, false if any populated
+        pass
+    def isMatrixComplete(self, askColumn:bool=True, index:list=[], identity:list=None)->bool:
+        #return true if all entries are not of an identity
+        #boolean checks by row or column 
+        #list must be as long as identity, and idex list must be unique, and have no index out of matrix range.
+        #implement same logic for is empty.
+        pass
+
 
 def nonZeroDimensions(matrix:directedGraphMatrix, testIteration=0): 
     print("Matrice test, nonZeroDimensions: "+str(testIteration)) 
@@ -538,16 +570,54 @@ def printMatrix(matrix:directedGraphMatrix, testIteration=0):
     except:
         raise ValueError("Something went wrong with the __Str__ function")
 
+def testPositionFunc(matrix:directedGraphMatrix,x:int=0,y:int=0,value=None,testIteration:int=0):
+    print("Checking for position : (",x,", ",y,")")
+    print("Matrix X/Y: ", matrix.getX(), "/", matrix.getY())
+    print("Matrix: \n",matrix.__str__(0, 1, "N/A", None, True, True))
+    print("Matrix has position? :", matrix.isPosition(x,y))
+    print("Matrix get position? :", matrix.getPosition(x,y))
+    print("Matrix set position? :", matrix.setPosition(x,y, value))
+    print("Matrix after attempted changes: \n", matrix.__str__(0, 1, "N/A", None, True, True))
+
+def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], addIdx:int=None, replacement:list=[], setIdx:int=None, remove:int=None, testIteration=0):
+    #print matrix.
+    #dim =True is column, False is row
+    
+    #add inserts 'add' to the matrix [either end of row or end of columsn] seperate test to try specific indexes
+    #replacement 'replaces' a dim in the matrix [let's have the index match that of inserts].
+    print("Test ", testIteration)
+    input("continue?")
+    beforeChanges=matrix.__str__(0, 1, "N/A", None, True, True)
+
+    if dim: #add/remove column
+        
+        #0,0 #Replace row should just use addColumn/remove column. 
+        print("add Column, ", matrix.addColumn(add,addIdx)) #expect failure  
+        print("set Column, ", matrix.setColumn(replacement,setIdx)) #expect failure 
+        #print("rem Column, ", matrix.removeColumn(remove)) #expect failure 
+    
+
+    else: #add/remove row
+        print("add Row ", matrix.addRow(add,addIdx)) #expect failure
+        print("set Row ", matrix.setRow(replacement,setIdx)) #expect failure
+        #print("rem Row ", matrix.removeRow(remove))  #expect failure 
+
+    afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
+    input("See matrix "+str(testIteration)+"?")
+    print("Before:\n", beforeChanges)
+    print("After:\n",  afterChanges)
+    input("continue?")
+
+    pass
 
 def testSweep(matrixList, func):
     testIteration=0
     for matrix in matrixList:
         try: 
-            func(matrix,testIteration)
+            func(matrix=matrix,testIteration=testIteration)
         except ValueError or IndexError as e:
             print(e)  
-        testIteration+=1
-        input("Continue?")
+        testIteration+=1 
     
 
 
@@ -571,8 +641,34 @@ def main():
     
     #testSweep(testMatrices, notNoneMatrix)
     
-    testSweep(testMatrices, printMatrix)
- 
+    #testSweep(testMatrices, printMatrix) #TODO: Need to make doc string explaining optional parameters. Need to test more complete functionality. Use functools partial to test otional parameters.
+    import functools #for partial 
+    testSweep(testMatrices, functools.partial(testPositionFunc,x=0,y=0,value=000))
+    #to distinquish columsn and rows. 
+    testSweep(testMatrices, functools.partial(testPositionFunc, x=4, y=4, value=404))
+    testSweep(testMatrices, functools.partial(testPositionFunc, x=3, y=3, value=303))
+    testSweep(testMatrices, functools.partial(testPositionFunc, x=2, y=2, value=202))
+    testSweep(testMatrices, functools.partial(testPositionFunc, x=1, y=1, value=101)) 
+
+    #TODO: Legend tests, row/column operations.
+        #If insert row/column extends well beyond a matrix. In strictmode, index error, if not strict mode, append upto and including that index with a default N/A value (optional, otherwise default to None)
+        #Row column tests first
+            #to distinquish columsn and rows. 
+
+    dimA=["a","b","c","d","e"]
+    dimB=["1","2","3","4","5"]
+    dimC= ["a","b","c","d","e","f","g","h","i","j"]
+    dimD = ["1","2","3","4","5","6","7","8","9","10"]
+    testSweep(testMatrices, functools.partial(testDimensionFunc, dim=True, add=dimA, addIdx=0, replacement=dimB, setIdx=1, remove=2 ))  
+    #expecting cols: dimaA, dimB, 303, 404, if no erorrs
+
+#def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], addIdx:int=None, replacement:list=[], setIdx:int=None, remove:int=None)
+
+
+    #TODO: When adding a row or column have an optional column or row legend name. [and on strict mode default when creation with numbers for row and columns]
+    #TODO: When replacing a column or row, allow for the row or column to be replaced
+    #TODO: Function to replace existing column or row name in legend
+
 
     pass
 
