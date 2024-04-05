@@ -1,5 +1,4 @@
-
-
+ 
 class ruleObj():
     def __init__(self, ruleName):
         self.name=ruleName
@@ -83,6 +82,8 @@ This will be an ugly, ugly algorithm. Finding a root may be quick, if we simply 
 """
 
 
+#TODO: Condense functionalities, like _Validates, as there is only a subfunctions worth difference. 
+#TODO: Ensure that any higher order functionality makes use of the basic functionality to achieve additional features.
 class directedGraphMatrix:
     """X is the number of columns, Y is number of rows"""
     """X axis -> Y Axis Node."""
@@ -163,6 +164,11 @@ class directedGraphMatrix:
     #TODO: let the index for the Dim functions optionally be a string. If a string send it into the legend to get the index.
     #TODO: if addrow/column is empty list, input a 0 along that row, or optional N/A arugment. At this point we should have a legend that keeps track of a N/A for a given column
         #Along with optional enforcements of type, like a function isType() that a user provides. So inputs must pass that internal type legend.
+
+    #TODO: Stack changes. If at any point in the list of changes to do, a -1 or fail state is returned, revert the changes [or duplicate the object and only return the object when desired]. 
+        #If revert is to be done, the set column/remove columns would have to record what certain values in a matrix are. In this case, we'd likely have a list of changes up to X amount of changes.
+        #Eahc X change has a max change size of Dim+1^2 of matrix and a min size of dim-1^2 of a matrix. But if we allow the stack to hold onto as many a sthere are instrucitons, then we could implement an undo operation.
+        #FUTURE: ^Maybe. Or the parent object we were talking about in the git which supports strong typing and validation functions to be provided.
     def getColumn(self, colIdx:int)->list|int:
         print("getColumn") 
         if colIdx>-1 and colIdx<self.getX():
@@ -218,12 +224,13 @@ class directedGraphMatrix:
                 raise e
             else:
                 return -2
-        self.getMatrix()[index]=column
+        self.getMatrix().insert(index,column)
+
         return 1
     def setRow(self, row:list, index:int): 
         print("setRow") 
         try:
-            result=self._validateColumn(row, index)
+            result=self._validateRow(row, index)
             if result<0:
                 return result
         except IndexError or ValueError as e:
@@ -232,10 +239,15 @@ class directedGraphMatrix:
             else:
                 return -1 
         rowNum=0
-        for col in self.getMatrix():
-            col[index]=row[rowNum]
-            rowNum+=1
-        return 1
+        if index<self.getY():
+            for col in self.getMatrix():
+                col[index]=row[rowNum]
+                rowNum+=1
+            return 1
+        else:
+            return -1
+    
+
     def addColumn(self, column, index=None)->int:
         print("addColumn") 
         if index==None:
@@ -254,7 +266,7 @@ class directedGraphMatrix:
         if index==None:
             index=self.getY()
         try:
-            result=self._validateColumn(row, index)
+            result=self._validateRow(row, index)
             if result<0:
                 return result
         except IndexError or ValueError as e:
@@ -581,7 +593,8 @@ def testPositionFunc(matrix:directedGraphMatrix,x:int=0,y:int=0,value=None,testI
     print("Matrix set position? :", matrix.setPosition(x,y, value))
     print("Matrix after attempted changes: \n", matrix.__str__(0, 1, "N/A", None, True, True))
 
-def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], addIdx:int=None, replacement:list=[], setIdx:int=None, remove:int=None, testIteration=0):
+def testSameDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], addIdx:int=None, replacement:list=[], setIdx:int=None, remove:int=None, testIteration=0):
+    #NOTE: Some obfuscation in this test, adding then replacing is harder to keep track of a replacement, an add.
     #print matrix.
     #dim =True is column, False is row
     
@@ -610,6 +623,10 @@ def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], ad
 
     afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
 
+    if dim:
+        print("Edits were to Columns")
+    else:
+        print("Edits were to rows")
     input("See matrix "+str(testIteration)+"?")
     print("Before add/set:\n", beforeChanges)
     print("After add/set:\n",  afterChanges) 
@@ -619,6 +636,15 @@ def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], ad
 
     input("continue?")
 
+    pass
+
+def testAddColRmRow():
+    pass
+def testAddRowRmCol():
+    pass
+def testAddColSetRow():
+    pass
+def testAddRowSetCol():
     pass
 
 
@@ -636,6 +662,15 @@ def testSweep(matrixList, func, useStrictMode:bool=False):
 
 
 def main(): 
+    """
+    Tests are designed to fail and succeed in different amounts. This type of test is a shotgun, 
+        Testing if it fails where I expect, if it succeeds where I don't. It is important that the tests also fail so I can know the catch features are working.
+        Eventually will test strict mode, but first the basic functionality and catching.
+    Each subfunction in the program is meant to allow for cases to be fed and then presented to check.
+    Failures due to strict mode being false will silently fail [usually], and should not change the resulting object.
+    Failures due to strict mode being true will cause the errors, currently, to throw. Eventually we'll catch and report the error in test sweep if the useStrictMode==True.
+    Successes should only succeed if they succeed in both strict and nonstrict modes [for the most part - still deciding if any should be allowed to fail]. 
+    """
     directedGraphMatrix.strictMode=False
     #TEST: Initializations 
     emptyMatrix=directedGraphMatrix(0,0) 
@@ -646,7 +681,7 @@ def main():
 
     negativeMatrixE=directedGraphMatrix(-1,-9) 
     negativeRowMatrixF=directedGraphMatrix(10,-5)
-    negativeColMatrixF=directedGraphMatrix(-5,10)
+    negativeColMatrixF=directedGraphMatrix(-5,10) #7
     testMatrices=[emptyMatrix, squareMatrixA, squareMatrixB, longRectangleMatrixC, tallRectangleMatrixD, negativeMatrixE, negativeRowMatrixF, negativeColMatrixF]
     #legendA={"Set":0, "Group":1, "Ring":2, "Monoid":3, "Magma":4, "Semi-Group":5}
     #legendB={"Numeric Algebra":0, "Variable Algebra":1, "Trig":2, "Calc":3, "Real Algebra":4, "Abstract Algebra":5, "Elliptical Curve Crypt":6, "Probability Theory":7, "Statistics":8,"Linear Algebra":9}
@@ -673,8 +708,19 @@ def main():
     dimB=["1","2","3","4","5"]
     dimC= ["a","b","c","d","e","f","g","h","i","j"]
     dimD = ["1","2","3","4","5","6","7","8","9","10"]
-    testSweep(testMatrices, functools.partial(testDimensionFunc, dim=True, add=dimA, addIdx=0, replacement=dimB, setIdx=1, remove=2 ))  
-    #expecting cols: dimaA, dimB, 303, 404, if no erorrs
+    #testSweep(testMatrices, functools.partial(testSameDimensionFunc, dim=True, add=dimA, addIdx=0, replacement=dimB, setIdx=1, remove=2 ))  
+    #testSweep(testMatrices, functools.partial(testSameDimensionFunc, dim=True, add=dimC, addIdx=0, replacement=dimD, setIdx=1, remove=2 ))  
+
+    #Test add column, then remove row
+    #Test add row, then remove column
+    #test add row, then set column
+    #test add column, then set row
+    #Test with dimC/D
+    #Test appending to end
+    #test bad indexes 
+    #see final test.
+
+
 
 #def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], addIdx:int=None, replacement:list=[], setIdx:int=None, remove:int=None)
 
