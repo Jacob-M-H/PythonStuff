@@ -104,7 +104,7 @@ class directedGraphMatrix:
         
 
     def _setX(self, x)->int:
-        print("_setX")
+        #print("_setX")
         if x<0:
             self.x=0
             return -1
@@ -112,7 +112,7 @@ class directedGraphMatrix:
             self.x=x
             return 1
     def _setY(self, y)->int:
-        print("_setY")
+        #print("_setY")
         if y<0:
             self.y=0
             return -1
@@ -120,14 +120,14 @@ class directedGraphMatrix:
             self.y=y
             return 1
     def getX(self)->int:
-        print("getX")
+        #print("getX")
         return self.x
     def getY(self)->int:
-        print("getY")
+        #print("getY")
         return self.y
 
     def createMatrix(self, encoding=None): 
-        print("createMatrix") 
+        #print("createMatrix") 
         temp=[] 
         columnNumber=self.getX()
         rowNumber=self.getY()
@@ -136,18 +136,18 @@ class directedGraphMatrix:
         return temp
 
     def getMatrix(self)->list|None:
-        print("getMatrix") 
+        #print("getMatrix") 
         return self.Matrix
 
     def isPosition(self, row, column):
-        print("isPosition") 
+        #print("isPosition") 
         if self.Matrix!=None and row<self.getY() and column<self.getX():
             return True
         else:
             return False
     def setPosition(self, row, column, encoding)->int:
         """-1 is bad inputs."""
-        print("setPosition") 
+        #print("setPosition") 
         if self.isPosition(row, column):
             self.getMatrix()[column][row]=encoding
             return 1
@@ -156,7 +156,7 @@ class directedGraphMatrix:
     def getPosition(self, row, column)->tuple: #NOTE: Part of an experiment to make sure tuples act as I expect them to in python
         #TEST: a copy of good return[1] is mutable, but return[1] is not.
         """-1 is bad inputs."""
-        print("getPosition") 
+        #print("getPosition") 
         if self.isPosition(row, column):
             return (1,self.getMatrix()[column][row])
         else:
@@ -170,14 +170,14 @@ class directedGraphMatrix:
         #Eahc X change has a max change size of Dim+1^2 of matrix and a min size of dim-1^2 of a matrix. But if we allow the stack to hold onto as many a sthere are instrucitons, then we could implement an undo operation.
         #FUTURE: ^Maybe. Or the parent object we were talking about in the git which supports strong typing and validation functions to be provided.
     def getColumn(self, colIdx:int)->list|int:
-        print("getColumn") 
+        #print("getColumn") 
         if colIdx>-1 and colIdx<self.getX():
             return self.getMatrix()[colIdx]
         else:
             return -1 #Could perhaps give empty list, but this is more explicit.
     def getRow(self, rowIdx:int)->list|int:
         """Slightly more expensive than getColumn"""
-        print("getRow") 
+        #print("getRow") 
         if rowIdx>-1 and rowIdx<self.getY():
             return [self.getMatrix()[column][rowIdx] for column in range(self.getX())]
         else:
@@ -214,7 +214,7 @@ class directedGraphMatrix:
             return -1
         return 1
     def setColumn(self, column:list, index:int)->int: 
-        print("setColumn") 
+        #print("setColumn") 
         try:
             result=self._validateColumn(column, index)
             if result<0:
@@ -228,7 +228,7 @@ class directedGraphMatrix:
 
         return 1
     def setRow(self, row:list, index:int): 
-        print("setRow") 
+        #print("setRow") 
         try:
             result=self._validateRow(row, index)
             if result<0:
@@ -249,7 +249,7 @@ class directedGraphMatrix:
     
 
     def addColumn(self, column, index=None)->int:
-        print("addColumn") 
+        #print("addColumn") 
         if index==None:
             index=self.getX()
         try:
@@ -262,7 +262,7 @@ class directedGraphMatrix:
         self._setX(self.getX()+1)
         return 1
     def addRow(self, row, index=None)->int:
-        print("addRow") 
+        #print("addRow") 
         if index==None:
             index=self.getY()
         try:
@@ -278,7 +278,7 @@ class directedGraphMatrix:
         self._setY(self.getY()+1)
         return 1
     def removeColumn(self, index:int)->int:
-        print("removeColumn") 
+        #print("removeColumn") 
         if index<self.getX() and index>0:
             self.getMatrix().pop(index)
             self._setX(self.getX()-1)
@@ -286,7 +286,7 @@ class directedGraphMatrix:
         else:
             return -1
     def removeRow(self, index:int)->int:
-        print("removeRow") 
+        #print("removeRow") 
         if index<self.getY() and index>0: 
             for col in self.getMatrix(): 
                 col.pop(index)
@@ -430,7 +430,7 @@ class directedGraphMatrix:
         """Justify 0: no justificaiton\nJustify 1: Left just\nJustify 2: Right Just\nJustify 3: center. Other integers treated as 0."""
         """X/Y label defaults "", on True labels with integers."""
 
-        print("__str__")
+        #print("__str__")
         rowNum=self.getY()
         colNum=self.getX()
         #TODO, preallocate the sizes required via row num and col num
@@ -492,10 +492,10 @@ class directedGraphMatrix:
                 padding=figurePadding(str(rowNum), padding)
  
 
-        print("Matrix=\n", self.getMatrix())
+        #print("Matrix=\n", self.getMatrix())
         for row in range(rowNum):     
             for col in range(colNum):
-                print("Find row/col: ", row,"/",col, " in range rowNum/colNum: ", rowNum,"/",colNum)
+                #print("Find row/col: ", row,"/",col, " in range rowNum/colNum: ", rowNum,"/",colNum)
                 strValue=str(self.getPosition(row, col)[1])
                 padding=figurePadding(strValue, padding)
                 resultStrings.append(strValue)
@@ -524,7 +524,7 @@ class directedGraphMatrix:
             else:
                 finalResultString+=padString(padding, key, optionalJustify) 
             rowLimit=colNum*rowHead 
-            print("head: ", head,", rowLimit: ",rowLimit)
+            #print("head: ", head,", rowLimit: ",rowLimit)
             for head in range(head, rowLimit): 
                 if resultStrings[head]==str(optionalCellDefault):
                     finalResultString+=padString(padding, optionalCellNA, optionalJustify)
@@ -638,14 +638,59 @@ def testSameDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[]
 
     pass
 
-def testAddColRmRow():
-    pass
-def testAddRowRmCol():
-    pass
-def testAddColSetRow():
-    pass
-def testAddRowSetCol():
-    pass
+ 
+def testAddColRmRow(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, removeIdx:int=0, testIteration:int=0):
+    print("Test ", testIteration)
+    input("continue?")
+    beforeChanges=matrix.__str__(0, 1, "N/A", None, True, True) 
+    matrix.addColumn(add, addIdx)
+    afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
+    matrix.removeRow(removeIdx)
+    afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
+    input("See matrix "+str(testIteration)+"?")
+    print("Before add/set:\n", beforeChanges)
+    print("After add:\n",  afterChanges) 
+    print("After remove:\n", afterRemove)
+ 
+def testAddRowRmCol(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, removeIdx:int=0, testIteration:int=0):
+    print("Test ", testIteration)
+    input("continue?")
+    beforeChanges=matrix.__str__(0, 1, "N/A", None, True, True) 
+    matrix.addRow(add, addIdx)
+    afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
+    matrix.removeColumn(removeIdx)
+    afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
+    input("See matrix "+str(testIteration)+"?")
+    print("Before add/set:\n", beforeChanges)
+    print("After add:\n",  afterChanges) 
+    print("After remove:\n", afterRemove)
+
+def testAddColSetRow(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, newRow:list=[], setIdx:int=0, testIteration:int=0):
+    print("Test ", testIteration)
+    input("continue?")
+    beforeChanges=matrix.__str__(0, 1, "N/A", None, True, True) 
+    matrix.addColumn(add, addIdx)
+    afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
+    matrix.setRow(newRow,setIdx)
+    afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
+    input("See matrix "+str(testIteration)+"?")
+    print("Before add/set:\n", beforeChanges)
+    print("After add:\n",  afterChanges) 
+    print("After set:\n", afterRemove)
+
+def testAddRowSetCol(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, newCol:list=[], setIdx:int=0, testIteration:int=0):
+    print("Test ", testIteration)
+    input("continue?")
+    beforeChanges=matrix.__str__(0, 1, "N/A", None, True, True) 
+    matrix.addRow(add, addIdx)
+    afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
+    matrix.setColumn(newCol, setIdx)
+    afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
+    input("See matrix "+str(testIteration)+"?")
+    print("Before add/set:\n", beforeChanges)
+    print("After add:\n",  afterChanges) 
+    print("After set:\n", afterRemove)
+
 
 
 def testSweep(matrixList, func, useStrictMode:bool=False):
@@ -653,12 +698,14 @@ def testSweep(matrixList, func, useStrictMode:bool=False):
     directedGraphMatrix.strictMode=useStrictMode
     testIteration=0
     for matrix in matrixList:
-        try: 
-            func(matrix=matrix,testIteration=testIteration)
+        
+        try:  
+            func(matrix=matrix, testIteration=testIteration)
         except ValueError or IndexError as e:
             print(e)  
-        testIteration+=1 
+        testIteration+=1  
     directedGraphMatrix.strictMode=oldMode
+    input("Continue?")
 
 
 def main(): 
@@ -671,6 +718,28 @@ def main():
     Failures due to strict mode being true will cause the errors, currently, to throw. Eventually we'll catch and report the error in test sweep if the useStrictMode==True.
     Successes should only succeed if they succeed in both strict and nonstrict modes [for the most part - still deciding if any should be allowed to fail]. 
     """
+    
+    import copy 
+    def resetMatrices()->list:
+        global testMatricesOldValues 
+        return copy.deepcopy(testMatricesOldValues)
+    
+    def saveMatrices(testMatrices:list)->int:
+        global testMatricesOldValues
+        testMatricesOldValues=[]
+        for matrix in testMatrices:
+            testMatricesOldValues.append(copy.deepcopy(matrix)) 
+        return 1
+    
+    def copyMatrix(matrix:directedGraphMatrix)->directedGraphMatrix: 
+        #Need to add legend stuff and others. Not this simple. 
+        newMatrix=directedGraphMatrix(0,0)
+        for column in matrix.getMatrix():
+            newMatrix.addColumn(column)
+        return newMatrix
+
+
+
     directedGraphMatrix.strictMode=False
     #TEST: Initializations 
     emptyMatrix=directedGraphMatrix(0,0) 
@@ -682,14 +751,15 @@ def main():
     negativeMatrixE=directedGraphMatrix(-1,-9) 
     negativeRowMatrixF=directedGraphMatrix(10,-5)
     negativeColMatrixF=directedGraphMatrix(-5,10) #7
-    testMatrices=[emptyMatrix, squareMatrixA, squareMatrixB, longRectangleMatrixC, tallRectangleMatrixD, negativeMatrixE, negativeRowMatrixF, negativeColMatrixF]
+    testMatrices=[emptyMatrix, squareMatrixA, squareMatrixB, longRectangleMatrixC, tallRectangleMatrixD, negativeMatrixE, negativeRowMatrixF, negativeColMatrixF] 
     #legendA={"Set":0, "Group":1, "Ring":2, "Monoid":3, "Magma":4, "Semi-Group":5}
     #legendB={"Numeric Algebra":0, "Variable Algebra":1, "Trig":2, "Calc":3, "Real Algebra":4, "Abstract Algebra":5, "Elliptical Curve Crypt":6, "Probability Theory":7, "Statistics":8,"Linear Algebra":9}
     #legendC={"A":1,"B":2,"C":3,"D":4, "E":5} #TEST, negatives, positives beyond index of the x/y, 0s, and multiple equal values, such as "E":5, "F":5.
     #testSweep(testMatrices, nonZeroDimensions)
     
-    #testSweep(testMatrices, notNoneMatrix)
-    
+    #testSweep(testMatrices, notNoneMatrix)  
+
+
     #testSweep(testMatrices, printMatrix) #TODO: Need to make doc string explaining optional parameters. Need to test more complete functionality. Use functools partial to test otional parameters.
     import functools #for partial 
     testSweep(testMatrices, functools.partial(testPositionFunc,x=0,y=0,value=000))
@@ -698,6 +768,9 @@ def main():
     testSweep(testMatrices, functools.partial(testPositionFunc, x=3, y=3, value=303))
     testSweep(testMatrices, functools.partial(testPositionFunc, x=2, y=2, value=202))
     testSweep(testMatrices, functools.partial(testPositionFunc, x=1, y=1, value=101)) 
+
+    saveMatrices(testMatrices) 
+    testMatrices=resetMatrices() 
 
     #TODO: Legend tests, row/column operations.
         #If insert row/column extends well beyond a matrix. In strictmode, index error, if not strict mode, append upto and including that index with a default N/A value (optional, otherwise default to None)
@@ -708,19 +781,39 @@ def main():
     dimB=["1","2","3","4","5"]
     dimC= ["a","b","c","d","e","f","g","h","i","j"]
     dimD = ["1","2","3","4","5","6","7","8","9","10"]
+    dimE=["a1","b2","c3", "d4"]
+    dimE=["A1","B2","C3", "D4"] 
+    #Test dimensional functions
     #testSweep(testMatrices, functools.partial(testSameDimensionFunc, dim=True, add=dimA, addIdx=0, replacement=dimB, setIdx=1, remove=2 ))  
-    #testSweep(testMatrices, functools.partial(testSameDimensionFunc, dim=True, add=dimC, addIdx=0, replacement=dimD, setIdx=1, remove=2 ))  
-
+    #testSweep(testMatrices, functools.partial(testSameDimensionFunc, dim=True, add=dimC, addIdx=0, replacement=dimD, setIdx=1, remove=2 ))   
     #Test add column, then remove row
     #Test add row, then remove column
     #test add row, then set column
-    #test add column, then set row
+    #test add column, then set row 
+
+
+    input("BEGIN TESTING DIM MIXING")
+    #Add row at index 0 just appends it... And remove row doesn't work... huh?
+    testSweep(testMatrices, functools.partial(testAddColRmRow, add=dimA, addIdx=0, removeIdx=0)) #+1 Col, -1Row
+    testSweep(testMatrices, printMatrix) #Check dimA exists, but there is 1 less row
+    testSweep(testMatrices, functools.partial(testAddColSetRow, add=dimE, addIdx=0, newRow=["ZZ", "XX"],setIdx=0)) #+1 col, cahnge Row0 
+    testSweep(testMatrices, printMatrix)  #Check dimE exists, and that ZZ is in the 0th place. I think 6 is the one that it will take.
+    testMatrices=resetMatrices()
+    #squareMatrixA (1), should succeed.
+        #NOTE: in python bug file, that functools require = assignment with parameter name, otherwise it ends with two routed to the same argument [matrix] <-that was it okay.
+    testSweep(testMatrices, functools.partial(testAddRowRmCol, add=dimB, addIdx=0, removeIdx=0)) 
+    testSweep(testMatrices, printMatrix) 
+    testSweep(testMatrices, functools.partial(testAddRowSetCol, add=dimE, addIdx=0, newCol=["XX", "ZZ"],setIdx=0)) #two rows, with 5,10 I think. 
+    testSweep(testMatrices, printMatrix) 
+    testMatrices=resetMatrices()
+
     #Test with dimC/D
     #Test appending to end
     #test bad indexes 
     #see final test.
 
 
+    """NOTE: Remove functiosn are bugged right now due to not setting the matrix to be the resulting matrix. Simply will create a set Matrix that will double check each of the column and row lengths. (Verify Matrix function too)"""
 
 #def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], addIdx:int=None, replacement:list=[], setIdx:int=None, remove:int=None)
 
