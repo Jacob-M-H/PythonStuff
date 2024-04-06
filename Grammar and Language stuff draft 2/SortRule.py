@@ -1,4 +1,5 @@
- 
+import copy
+
 class ruleObj():
     def __init__(self, ruleName):
         self.name=ruleName
@@ -192,11 +193,12 @@ class directedGraphMatrix:
         if self.getMatrix()==None:
             if directedGraphMatrix.strictMode:
                 raise ValueError("No Matrix found")
-            return -1
+            return -2
         if len(column)!=self.getY():
+            print("colLen: ",len(column),", getY: ",self.getY())
             if directedGraphMatrix.strictMode:
                 raise ValueError("Column has a different number of rows than the matrix!")
-            return -1  
+            return -3  
         return 1
     def _validateRow(self, row:list, index:int=0):
         print("_validateRow")   
@@ -248,20 +250,24 @@ class directedGraphMatrix:
             return -1
     
 
-    def addColumn(self, column, index=None)->int:
+    def addColumn(self, column:list, index=None)->int:
+        """NOTE it seems that hte list sent in as it is an object will be 'consumed' when the underlying objects are mutated. This is a bigger issue than I want to handle, so for now I'll cheat it with a copy.deepcopy"""
+         
         #print("addColumn") 
         if index==None:
             index=self.getX()
         try:
             result=self._validateColumn(column, index) #Validate column must not rely on getPositoin/isPosition to check column. Must cehck getY, and then if the index is within the getX, insert it, otherwise append it.
+            print("Result of validate column: ", result)
             if result<0:
                 return result
         except IndexError or ValueError as e:
             raise e
-        self.getMatrix().insert(index, column) #might need append if it doesn't like the exact end.
+        copyCol=copy.deepcopy(column)
+        self.getMatrix().insert(index, copyCol) #might need append if it doesn't like the exact end.
         self._setX(self.getX()+1)
         return 1
-    def addRow(self, row, index=None)->int:
+    def addRow(self, row:list, index=None)->int:
         #print("addRow") 
         if index==None:
             index=self.getY()
@@ -278,18 +284,19 @@ class directedGraphMatrix:
         self._setY(self.getY()+1)
         return 1
     def removeColumn(self, index:int)->int:
-        #print("removeColumn") 
-        if index<self.getX() and index>0:
+        print("removeColumn") 
+        if index<self.getX() and index>-1:
             self.getMatrix().pop(index)
+           
             self._setX(self.getX()-1)
             return 1
         else:
             return -1
     def removeRow(self, index:int)->int:
-        #print("removeRow") 
-        if index<self.getY() and index>0: 
+        print("removeRow")  
+        if index<self.getY() and index>-1: 
             for col in self.getMatrix(): 
-                col.pop(index)
+                col.pop(index) 
             self._setY(self.getY()-1)
             return 1 
         else:
@@ -647,10 +654,15 @@ def testAddColRmRow(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, remov
     afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
     matrix.removeRow(removeIdx)
     afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
-    input("See matrix "+str(testIteration)+"?")
-    print("Before add/set:\n", beforeChanges)
-    print("After add:\n",  afterChanges) 
-    print("After remove:\n", afterRemove)
+    input("See matrix testAddColRmRow "+str(testIteration)+"?")
+    if beforeChanges==afterChanges:
+        print("Nothing added")
+    else:
+        print("After add:\n",  afterChanges) 
+    if afterChanges==afterRemove:
+        print("Nothing removed")
+    else:
+        print("After remove:\n", afterRemove)
  
 def testAddRowRmCol(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, removeIdx:int=0, testIteration:int=0):
     print("Test ", testIteration)
@@ -660,10 +672,16 @@ def testAddRowRmCol(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, remov
     afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
     matrix.removeColumn(removeIdx)
     afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
-    input("See matrix "+str(testIteration)+"?")
+    input("See matrix testAddRowRmCol "+str(testIteration)+"?")
     print("Before add/set:\n", beforeChanges)
-    print("After add:\n",  afterChanges) 
-    print("After remove:\n", afterRemove)
+    if beforeChanges==afterChanges:
+        print("Nothing added")
+    else:
+        print("After add:\n",  afterChanges) 
+    if afterChanges==afterRemove:
+        print("Nothing removed")
+    else:
+        print("After remove:\n", afterRemove)
 
 def testAddColSetRow(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, newRow:list=[], setIdx:int=0, testIteration:int=0):
     print("Test ", testIteration)
@@ -672,11 +690,16 @@ def testAddColSetRow(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, newR
     matrix.addColumn(add, addIdx)
     afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
     matrix.setRow(newRow,setIdx)
-    afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
-    input("See matrix "+str(testIteration)+"?")
-    print("Before add/set:\n", beforeChanges)
-    print("After add:\n",  afterChanges) 
-    print("After set:\n", afterRemove)
+    afterSet=matrix.__str__(0,1, "N/A", None, True, True) 
+    input("See matrix testAddColSetRow "+str(testIteration)+"?")
+    if beforeChanges==afterChanges:
+        print("Nothing Added")
+    else:
+        print("After add:\n",  afterChanges) 
+    if afterChanges==afterSet:
+        print("Nothing Set")
+    else:
+        print("After Set:\n", afterSet)
 
 def testAddRowSetCol(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, newCol:list=[], setIdx:int=0, testIteration:int=0):
     print("Test ", testIteration)
@@ -685,11 +708,16 @@ def testAddRowSetCol(matrix:directedGraphMatrix, add:list=[], addIdx:int=0, newC
     matrix.addRow(add, addIdx)
     afterChanges=matrix.__str__(0, 1, "N/A", None, True, True)
     matrix.setColumn(newCol, setIdx)
-    afterRemove=matrix.__str__(0,1, "N/A", None, True, True) 
-    input("See matrix "+str(testIteration)+"?")
-    print("Before add/set:\n", beforeChanges)
-    print("After add:\n",  afterChanges) 
-    print("After set:\n", afterRemove)
+    afterSet=matrix.__str__(0,1, "N/A", None, True, True) 
+    input("See matrix testAddRowSetCol "+str(testIteration)+"?")
+    if beforeChanges==afterChanges:
+        print("Nothing Added")
+    else:
+        print("After add:\n",  afterChanges) 
+    if afterChanges==afterSet:
+        print("Nothing Set")
+    else:
+        print("After Set:\n", afterSet)
 
 
 
@@ -793,27 +821,28 @@ def main():
 
 
     input("BEGIN TESTING DIM MIXING")
+    input("Next up is testAddColRmRow")
     #Add row at index 0 just appends it... And remove row doesn't work... huh?
     testSweep(testMatrices, functools.partial(testAddColRmRow, add=dimA, addIdx=0, removeIdx=0)) #+1 Col, -1Row
     testSweep(testMatrices, printMatrix) #Check dimA exists, but there is 1 less row
-    testSweep(testMatrices, functools.partial(testAddColSetRow, add=dimE, addIdx=0, newRow=["ZZ", "XX"],setIdx=0)) #+1 col, cahnge Row0 
+    input("Next up is testAddColSetRow")
+    testSweep(testMatrices, functools.partial(testAddColSetRow, add=dimE, addIdx=0, newRow=["ZZ", "YY", "XX","WW","VV","UU","TT"],setIdx=0)) #+1 col, cahnge Row0 
     testSweep(testMatrices, printMatrix)  #Check dimE exists, and that ZZ is in the 0th place. I think 6 is the one that it will take.
     testMatrices=resetMatrices()
+    input("Next up is testAddRowRmCol")
     #squareMatrixA (1), should succeed.
         #NOTE: in python bug file, that functools require = assignment with parameter name, otherwise it ends with two routed to the same argument [matrix] <-that was it okay.
     testSweep(testMatrices, functools.partial(testAddRowRmCol, add=dimB, addIdx=0, removeIdx=0)) 
     testSweep(testMatrices, printMatrix) 
-    testSweep(testMatrices, functools.partial(testAddRowSetCol, add=dimE, addIdx=0, newCol=["XX", "ZZ"],setIdx=0)) #two rows, with 5,10 I think. 
+    input("Next up is testAddRowSetCol")
+    testSweep(testMatrices, functools.partial(testAddRowSetCol, add=dimE, addIdx=0, newCol=["ZZ", "YY", "XX","WW","VV","UU","TT"].reverse(),setIdx=0)) #two rows, with 5,10 I think. 
     testSweep(testMatrices, printMatrix) 
     testMatrices=resetMatrices()
-
+    """"""
     #Test with dimC/D
     #Test appending to end
     #test bad indexes 
     #see final test.
-
-
-    """NOTE: Remove functiosn are bugged right now due to not setting the matrix to be the resulting matrix. Simply will create a set Matrix that will double check each of the column and row lengths. (Verify Matrix function too)"""
 
 #def testDimensionFunc(matrix:directedGraphMatrix, dim:bool=True, add:list=[], addIdx:int=None, replacement:list=[], setIdx:int=None, remove:int=None)
 
